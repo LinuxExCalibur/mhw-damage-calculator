@@ -1,0 +1,14 @@
+{"name":"凶爪龙","slug":"v2gSW","url":"https://mhworld.kiranico.com/zh/monsters/v2gSW/xiong-zhua-long","parts":[
+{"part":"Head","cut":43,"blunt":45,"ranged":45,"fire":25,"water":35,"thunder":25,"ice":25,"dragon":5},
+{"part":"Head (Broken)","cut":65,"blunt":75,"ranged":55,"fire":20,"water":25,"thunder":20,"ice":20,"dragon":5},
+{"part":"Neck","cut":25,"blunt":30,"ranged":25,"fire":15,"water":20,"thunder":15,"ice":15,"dragon":5},
+{"part":"Body","cut":25,"blunt":25,"ranged":20,"fire":10,"water":15,"thunder":10,"ice":10,"dragon":5},
+{"part":"Back","cut":25,"blunt":25,"ranged":20,"fire":10,"water":15,"thunder":10,"ice":10,"dragon":5},
+{"part":"Forelegs","cut":34,"blunt":38,"ranged":30,"fire":20,"water":30,"thunder":20,"ice":20,"dragon":5},
+{"part":"Forelegs (Broken)","cut":45,"blunt":45,"ranged":40,"fire":10,"water":20,"thunder":10,"ice":10,"dragon":5},
+{"part":"Hindlegs","cut":30,"blunt":30,"ranged":25,"fire":20,"water":30,"thunder":20,"ice":20,"dragon":5},
+{"part":"Hindlegs (Broken)","cut":50,"blunt":50,"ranged":40,"fire":10,"water":20,"thunder":10,"ice":10,"dragon":5},
+{"part":"Tail","cut":25,"blunt":22,"ranged":25,"fire":20,"water":30,"thunder":20,"ice":20,"dragon":5},
+{"part":"Tail (Broken)","cut":50,"blunt":45,"ranged":45,"fire":10,"water":15,"thunder":10,"ice":10,"dragon":5},
+{"part":"Tail Tip","cut":45,"blunt":30,"ranged":40,"fire":15,"water":20,"thunder":15,"ice":15,"dragon":5}
+]}

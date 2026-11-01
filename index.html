@@ -1,0 +1,377 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MHW 配装伤害计算器 · 会心 vs 不会心</title>
+<style>
+  :root{
+    --bg:#11131a; --panel:#181c26; --panel2:#1e2330; --line:#2b3242;
+    --text:#e6e9f0; --dim:#8b93a7; --accent:#e2b457; --accent2:#5aa9e6;
+    --good:#5fcf80; --bad:#e06060; --weak:#e2b457;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 "Microsoft YaHei","Segoe UI",system-ui,sans-serif}
+  header{padding:18px 22px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#1a1f2b,#11131a)}
+  h1{margin:0;font-size:19px;letter-spacing:.5px}
+  h1 span{color:var(--accent)}
+  .sub{color:var(--dim);font-size:12px;margin-top:4px}
+  .wrap{max-width:1180px;margin:0 auto;padding:18px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px}
+  .card h2{margin:0 0 10px;font-size:14px;color:var(--accent);font-weight:600;letter-spacing:.5px}
+  .row{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end}
+  .field{display:flex;flex-direction:column;gap:4px;min-width:96px}
+  .field label{font-size:11px;color:var(--dim)}
+  input,select{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:6px;padding:7px 8px;font:inherit;font-size:13px;outline:none}
+  input:focus,select:focus{border-color:var(--accent)}
+  input[type=number]{width:96px}
+  .builds{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:820px){.builds{grid-template-columns:1fr}}
+  .build{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .build.a{border-top:3px solid var(--accent)}
+  .build.b{border-top:3px solid var(--accent2)}
+  .build h3{margin:0 0 10px;font-size:14px}
+  .build.a h3{color:var(--accent)}
+  .build.b h3{color:var(--accent2)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+  .chip{padding:5px 10px;border:1px solid var(--line);border-radius:14px;cursor:pointer;font-size:12px;background:var(--panel2);user-select:none}
+  .chip:hover{border-color:var(--dim)}
+  .chip.on{background:var(--accent);color:#1a1200;border-color:var(--accent);font-weight:600}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right}
+  th:first-child,td:first-child{text-align:left;color:var(--dim)}
+  thead th{color:var(--dim);font-weight:500;font-size:12px}
+  .res td{font-variant-numeric:tabular-nums}
+  .res .big{font-size:15px;font-weight:700}
+  .win{color:var(--good);font-weight:700}
+  .lose{color:var(--bad)}
+  .zone-hit{background:rgba(226,180,87,.12)}
+  .zone-weak{color:var(--accent);font-weight:700}
+  details{margin-top:10px}
+  summary{cursor:pointer;color:var(--dim);font-size:12px}
+  .note{color:var(--dim);font-size:12px;margin-top:8px;line-height:1.8}
+  .tbl-wrap{overflow-x:auto}
+  .mt-table td,.mt-table th{padding:4px 7px;font-size:12px}
+  .tbl-wrap tr.on{background:rgba(226,180,87,.14)}
+  .tag{display:inline-block;padding:1px 6px;border-radius:4px;background:var(--panel2);border:1px solid var(--line);font-size:11px;color:var(--dim);margin-left:6px}
+  .bar{height:6px;background:var(--panel2);border-radius:3px;overflow:hidden;margin-top:6px}
+  .bar > i{display:block;height:100%;background:var(--accent)}
+  .bar.b > i{background:var(--accent2)}
+</style>
+</head>
+<body>
+<header>
+  <h1>MHW 配装伤害计算器 · <span>会心配装 vs 攻击配装</span></h1>
+  <div class="sub">肉质数据来自 Kiranico（MH:World Iceborne 数据库）· 斩味/会心/属性公式按 wiki 通用算法</div>
+</header>
+
+<div class="wrap">
+
+  <div class="card">
+    <h2>① 目标与动作</h2>
+    <div class="row">
+      <div class="field" style="min-width:200px">
+        <label>怪物</label>
+        <select id="monster"></select>
+      </div>
+      <div class="field">
+        <label>动作值 (MV)</label>
+        <input type="number" id="mv" value="100" min="1" max="1000" step="1">
+      </div>
+      <div class="field">
+        <label>怪物补正（怒/防御等）</label>
+        <input type="number" id="monmod" value="1" min="0.1" max="5" step="0.05">
+      </div>
+      <div class="field">
+        <label>软化（0.75×肉质+25）</label>
+        <select id="soft"><option value="0">否</option><option value="1">是</option></select>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <label style="font-size:11px;color:var(--dim)">打击部位</label>
+      <div class="chips" id="parts"></div>
+    </div>
+  </div>
+
+  <div class="builds">
+    <div class="build a">
+      <h3>配装 A · 会心流</h3>
+      <div class="grid2" id="buildA"></div>
+    </div>
+    <div class="build b">
+      <h3>配装 B · 攻击流</h3>
+      <div class="grid2" id="buildB"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h2>② 伤害对比</h2>
+    <div id="result"></div>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary>查看该怪物完整肉质表</summary>
+      <div class="tbl-wrap" id="mtTable" style="margin-top:10px"></div>
+    </details>
+    <details>
+      <summary>计算公式说明</summary>
+      <div class="note">
+        <b>真实攻击力</b> = 显示攻击力 ÷ 武器倍率 ＋ 攻击技能固定值 ＋ 额外攻击力，再 ×(1＋百分比加成)<br>
+        <b>物理伤害</b> = 真实攻击力 × 动作值/100 × 斩味物理倍率 × 肉质/100 × 会心倍率 × 怪物补正<br>
+        <b>属性伤害</b> = (显示属性值 ÷ 10 ＋ 属性强化) × 斩味属性倍率 × 属性吸收/100 × 属性会心倍率 × 怪物补正<br>
+        <b>会心</b>：正会心率 ×1.25（超会心 Lv1/2/3 → 1.30/1.35/1.40）；负会心率 ×0.75。<br>
+        <b>期望值</b>：会心≥0 时 = 非会心×(1−会心率) ＋ 会心×会心率；负会心时 = 非会心×(1−|会心率|) ＋ 非会心×0.75×|会心率|。<br>
+        <b>属性会心</b>：会心击【属性】×1.35，真·会心击【属性】×1.55，仅在会心命中时对属性部分生效。<br>
+        <b>弱点特效</b>：仅在肉质 ≥45 时生效（会心率 +10/+15/+30）。
+      </div>
+    </details>
+  </div>
+
+  <div class="note">
+    数据来源：<a href="https://mhworld.kiranico.com/zh/monsters" style="color:var(--accent2)">Kiranico MH:World</a>（肉质）·
+    公式参考 <a href="https://w.atwiki.jp/mhwyumi/" style="color:var(--accent2)">MHW 选民 wiki</a> 与社区通用算法。
+    怪物覆盖 <span id="cov"></span> 只大型怪物。若发现数值与游戏内不符，以 Wiki 页面为准，可在源码 <code>MHW_DATA</code> 中修正。
+  </div>
+</div>
+
+<script>
+const MHW_DATA = [{"name":"浮空龙","slug":"2mnT3","url":"https://mhworld.kiranico.com/zh/monsters/2mnT3/fu-kong-long","parts":[{"part":"Head","cut":55,"blunt":55,"ranged":45,"fire":25,"water":0,"thunder":15,"ice":10,"dragon":10},{"part":"Neck","cut":40,"blunt":40,"ranged":30,"fire":20,"water":0,"thunder":15,"ice":10,"dragon":10},{"part":"Neck Pouch","cut":75,"blunt":75,"ranged":60,"fire":25,"water":0,"thunder":15,"ice":10,"dragon":10},{"part":"Body","cut":46,"blunt":46,"ranged":42,"fire":15,"water":0,"thunder":10,"ice":5,"dragon":5},{"part":"Legs","cut":40,"blunt":35,"ranged":25,"fire":15,"water":0,"thunder":10,"ice":5,"dragon":5},{"part":"Wings","cut":35,"blunt":35,"ranged":45,"fire":15,"water":0,"thunder":10,"ice":5,"dragon":5},{"part":"Tail","cut":25,"blunt":25,"ranged":15,"fire":20,"water":0,"thunder":15,"ice":10,"dragon":10},{"part":"Head","cut":65,"blunt":65,"ranged":52,"fire":25,"water":0,"thunder":15,"ice":10,"dragon":10},{"part":"Tail","cut":20,"blunt":20,"ranged":15,"fire":20,"water":0,"thunder":15,"ice":10,"dragon":10}]},{"name":"战痕黑狼鸟","slug":"46DhX","url":"https://mhworld.kiranico.com/zh/monsters/46DhX/zhan-hen-hei-lang-niao","parts":[{"part":"Head","cut":60,"blunt":65,"ranged":45,"fire":0,"water":30,"thunder":0,"ice":10,"dragon":15},{"part":"Neck","cut":34,"blunt":40,"ranged":30,"fire":0,"water":15,"thunder":0,"ice":5,"dragon":10},{"part":"Stomach","cut":34,"blunt":34,"ranged":30,"fire":0,"water":25,"thunder":0,"ice":5,"dragon":10},{"part":"Back","cut":18,"blunt":18,"ranged":15,"fire":0,"water":10,"thunder":0,"ice":5,"dragon":10},{"part":"Legs","cut":30,"blunt":30,"ranged":25,"fire":0,"water":15,"thunder":0,"ice":5,"dragon":10},{"part":"Wings","cut":18,"blunt":18,"ranged":40,"fire":0,"water":20,"thunder":0,"ice":5,"dragon":10},{"part":"Wings (Broken)","cut":24,"blunt":24,"ranged":40,"fire":0,"water":20,"thunder":0,"ice":5,"dragon":10},{"part":"Tail","cut":40,"blunt":35,"ranged":30,"fire":0,"water":20,"thunder":0,"ice":5,"dragon":10},{"part":"Tail Tip","cut":46,"blunt":40,"ranged":35,"fire":0,"water":25,"thunder":0,"ice":5,"dragon":10}]},{"name":"冰牙龙","slug":"4k2UP","url":"https://mhworld.kiranico.com/zh/monsters/4k2UP/bing-ya-long","parts":[{"part":"Head","cut":65,"blunt":70,"ranged":55,"fire":20,"water":10,"thunder":15,"ice":0,"dragon":15},{"part":"Back","cut":30,"blunt":30,"ranged":25,"fire":5,"water":5,"thunder":5,"ice":0,"dragon":5},{"part":"Stomach","cut":38,"blunt":38,"ranged":25,"fire":10,"water":0,"thunder":5,"ice":0,"dragon":5},{"part":"Claws","cut":21,"blunt":45,"ranged":25,"fire":35,"water":5,"thunder":25,"ice":0,"dragon":10},{"part":"Claws (Broken)","cut":25,"blunt":45,"ranged":30,"fire":20,"water":5,"thunder":15,"ice":0,"dragon":10},{"part":"Wings","cut":30,"blunt":45,"ranged":20,"fire":10,"water":0,"thunder":5,"ice":0,"dragon":5},{"part":"Forelegs","cut":40,"blunt":45,"ranged":35,"fire":15,"water":0,"thunder":10,"ice":0,"dragon":5},{"part":"Hindlegs","cut":25,"blunt":24,"ranged":25,"fire":5,"water":5,"thunder":5,"ice":0,"dragon":5},{"part":"Tail","cut":45,"blunt":23,"ranged":45,"fire":10,"water":0,"thunder":5,"ice":0,"dragon":5},{"part":"Tail Tip","cut":60,"blunt":40,"ranged":40,"fire":15,"water":0,"thunder":10,"ice":0,"dragon":5}]},{"name":"恐暴龙","slug":"4rATd","url":"https://mhworld.kiranico.com/zh/monsters/4rATd/kong-bao-long","parts":[{"part":"Head","cut":60,"blunt":70,"ranged":60,"fire":10,"water":10,"thunder":15,"ice":5,"dragon":15},{"part":"Head (Enraged)","cut":45,"blunt":50,"ranged":45,"fire":15,"water":15,"thunder":20,"ice":10,"dragon":20},{"part":"Body","cut":25,"blunt":25,"ranged":25,"fire":5,"water":5,"thunder":20,"ice":5,"dragon":20},{"part":"Body (Enraged)","cut":22,"blunt":22,"ranged":20,"fire":10,"water":10,"thunder":25,"ice":10,"dragon":25},{"part":"Chest","cut":37,"blunt":37,"ranged":35,"fire":15,"water":15,"thunder":20,"ice":10,"dragon":20},{"part":"Chest (Enraged)","cut":75,"blunt":75,"ranged":70,"fire":20,"water":20,"thunder":25,"ice":15,"dragon":25},{"part":"Lower Body","cut":30,"blunt":30,"ranged":30,"fire":5,"water":5,"thunder":20,"ice":5,"dragon":20},{"part":"Lower Body (Enraged)","cut":25,"blunt":25,"ranged":25,"fire":10,"water":10,"thunder":25,"ice":10,"dragon":25},{"part":"Arms","cut":30,"blunt":30,"ranged":30,"fire":10,"water":10,"thunder":15,"ice":5,"dragon":15},{"part":"Arms (Enraged)","cut":25,"blunt":25,"ranged":25,"fire":15,"water":15,"thunder":20,"ice":10,"dragon":20},{"part":"Legs","cut":45,"blunt":38,"ranged":35,"fire":5,"water":5,"thunder":10,"ice":5,"dragon":10},{"part":"Legs (Enraged)","cut":24,"blunt":25,"ranged":25,"fire":10,"water":10,"thunder":15,"ice":10,"dragon":15},{"part":"Tail","cut":40,"blunt":35,"ranged":25,"fire":5,"water":5,"thunder":20,"ice":5,"dragon":20},{"part":"Tail (Enraged)","cut":25,"blunt":24,"ranged":20,"fire":10,"water":10,"thunder":25,"ice":10,"dragon":25}]},{"name":"猛牛龙","slug":"6dJI8","url":"https://mhworld.kiranico.com/zh/monsters/6dJI8/meng-niu-long","parts":[{"part":"Horns","cut":30,"blunt":45,"ranged":35,"fire":10,"water":0,"thunder":5,"ice":0,"dragon":15},{"part":"Head","cut":65,"blunt":65,"ranged":55,"fire":20,"water":0,"thunder":10,"ice":0,"dragon":25},{"part":"Neck","cut":45,"blunt":45,"ranged":35,"fire":5,"water":0,"thunder":0,"ice":0,"dragon":10},{"part":"Torso","cut":30,"blunt":30,"ranged":25,"fire":0,"water":0,"thunder":0,"ice":0,"dragon":5},{"part":"Legs","cut":45,"blunt":45,"ranged":45,"fire":0,"water":0,"thunder":0,"ice":0,"dragon":5},{"part":"Tail","cut":35,"blunt":35,"ranged":25,"fire":0,"water":0,"thunder":0,"ice":0,"dragon":5},{"part":"Legs (Broken)","cut":55,"blunt":55,"ranged":50,"fire":5,"water":0,"thunder":0,"ice":0,"dragon":10},{"part":"Horns (Broken)","cut":65,"blunt":65,"ranged":55,"fire":20,"water":0,"thunder":10,"ice":0,"dragon":25}]},{"name":"天地煌啼龙","slug":"8mvfA","url":"https://mhworld.kiranico.com/zh/monsters/8mvfA/tian-di-huang-ti-long","parts":[{"part":"Rock Head Casing (Face)","cut":50,"blunt":55,"ranged":45,"fire":5,"water":15,"thunder":0,"ice":20,"dragon":5},{"part":"Rock Head Casing (Top)","cut":55,"blunt":60,"ranged":35,"fire":5,"water":15,"thunder":0,"ice":20,"dragon":5},{"part":"Rock Head Casing (Bottom)","cut":50,"blunt":50,"ranged":30,"fire":5,"water":15,"thunder":0,"ice":20,"dragon":5},{"part":"Rock Lower Body","cut":10,"blunt":10,"ranged":10,"fire":5,"water":5,"thunder":0,"ice":10,"dragon":5},{"part":"Rock Forelegs","cut":19,"blunt":20,"ranged":15,"fire":5,"water":10,"thunder":0,"ice":15,"dragon":5},{"part":"Rock Forelegs (Broken)","cut":10,"blunt":10,"ranged":10,"fire":5,"water":5,"thunder":0,"ice":10,"dragon":5},{"part":"Rock Hindlegs","cut":10,"blunt":10,"ranged":10,"fire":5,"water":5,"thunder":0,"ice":10,"dragon":5},{"part":"Rock Wings","cut":19,"blunt":20,"ranged":20,"fire":5,"water":10,"thunder":0,"ice":15,"dragon":5},{"part":"Rock Wings (Broken)","cut":10,"blunt":10,"ranged":10,"fire":5,"water":5,"thunder":0,"ice":10,"dragon":5},{"part":"Head","cut":70,"blunt":75,"ranged":35,"fire":10,"water":20,"thunder":0,"ice":25,"dragon":5},{"part":"Torso","cut":48,"blunt":44,"ranged":20,"fire":5,"water":15,"thunder":0,"ice":20,"dragon":5},{"part":"Forelegs","cut":44,"blunt":48,"ranged":25,"fire":5,"water":15,"thunder":0,"ice":20,"dragon":5},{"part":"Hindlegs","cut":25,"blunt":25,"ranged":10,"fire":5,"water":5,"thunder":0,"ice":15,"dragon":5},{"part":"Wings","cut":48,"blunt":48,"ranged":45,"fire":5,"water":15,"thunder":0,"ice":20,"dragon":5},{"part":"Tail","cut":25,"blunt":25,"ranged":10,"fire":5,"water":5,"thunder":0,"ice":15,"dragon":5}]},{"name":"尸套龙","slug":"9mMsb","url":"https://mhworld.kiranico.com/zh/monsters/9mMsb/shi-tao-long","parts":[{"part":"Head","cut":50,"blunt":40,"ranged":50,"fire":25,"water":5,"thunder":10,"ice":15,"dragon":0},{"part":"Neck","cut":45,"blunt":40,"ranged":30,"fire":15,"water":5,"thunder":10,"ice":10,"dragon":15},{"part":"Chest","cut":50,"blunt":45,"ranged":45,"fire":15,"water":5,"thunder":10,"ice":15,"dragon":15},{"part":"Stomach","cut":50,"blunt":40,"ranged":45,"fire":20,"water":5,"thunder":10,"ice":15,"dragon":0},{"part":"Back","cut":45,"blunt":35,"ranged":35,"fire":20,"water":5,"thunder":10,"ice":15,"dragon":0},{"part":"Tail","cut":35,"blunt":30,"ranged":30,"fire":20,"water":5,"thunder":10,"ice":15,"dragon":0},{"part":"Tail Tip","cut":60,"blunt":30,"ranged":50,"fire":20,"water":5,"thunder":10,"ice":15,"dragon":0},{"part":"Hindlegs","cut":25,"blunt":25,"ranged":20,"fire":5,"water":0,"thunder":0,"ice":0,"dragon":5},{"part":"Forelegs","cut":45,"blunt":40,"ranged":35,"fire":20,"water":0,"thunder":5,"ice":10,"dragon":5},{"part":"Wings","cut":24,"blunt":23,"ranged":30,"fire":15,"water":5,"thunder":10,"ice":10,"dragon":15},{"part":"Head (Wounded)","cut":70,"blunt":80,"ranged":60,"fire":25,"water":5,"thunder":10,"ice":15,"dragon":25},{"part":"Stomach (Wounded)","cut":60,"blunt":70,"ranged":40,"fire":25,"water":5,"thunder":10,"ice":15,"dragon":25},{"part":"Back (Wounded)","cut":55,"blunt":65,"ranged":40,"fire":25,"water":5,"thunder":10,"ice":15,"dragon":25},{"part":"Forelegs (Wounded)","cut":55,"blunt":50,"ranged":45,"fire":20,"water":5,"thunder":5,"ice":10,"dragon":20}]},{"name":"惨爪龙","slug":"ADAfZ","url":"https://mhworld.kiranico.com/zh/monsters/ADAfZ/can-zhua-long","parts":[{"part":"Head","cut":70,"blunt":75,"ranged":65,"fire":10,"water":15,"thunder":20,"ice":30,"dragon":0},{"part":"Neck","cut":40,"blunt":45,"ranged":35,"fire":0,"water":5,"thunder":10,"ice":20,"dragon":0},{"part":"Body","cut":30,"blunt":30,"ranged":25,"fire":0,"water":0,"thunder":5,"ice":15,"dragon":0},{"part":"Back","cut":30,"blunt":30,"ranged":25,"fire":0,"water":0,"thunder":5,"ice":15,"dragon":0},{"part":"Forelegs","cut":55,"blunt":50,"ranged":45,"fire":5,"water":10,"thunder":15,"ice":25,"dragon":0},{"part":"Hindlegs","cut":45,"blunt":40,"ranged":35,"fire":5,"water":10,"thunder":15,"ice":25,"dragon":0},{"part":"Tail","cut":45,"blunt":40,"ranged":35,"fire":5,"water":5,"thunder":10,"ice":20,"dragon":0},{"part":"Head","cut":60,"blunt":65,"ranged":55,"fire":10,"water":15,"thunder":20,"ice":30,"dragon":0},{"part":"Neck","cut":36,"blunt":45,"ranged":32,"fire":0,"water":5,"thunder":10,"ice":20,"dragon":0},{"part":"Hindlegs","cut":45,"blunt":36,"ranged":32,"fire":5,"water":10,"thunder":15,"ice":25,"dragon":0},{"part":"Tail","cut":45,"blunt":36,"ranged":32,"fire":5,"water":5,"thunder":10,"ice":20,"dragon":0}]},{"name":"水妖鸟","slug":"aY2Se","url":"https://mhworld.kiranico.com/zh/monsters/aY2Se/shui-yao-niao","parts":[{"part":"Head","cut":60,"blunt":65,"ranged":45,"fire":10,"water":0,"thunder":15,"ice":30,"dragon":10},{"part":"Body","cut":30,"blunt":30,"ranged":25,"fire":5,"water":0,"thunder":5,"ice":15,"dragon":5},{"part":"Wings","cut":34,"blunt":34,"ranged":40,"fire":5,"water":0,"thunder":10,"ice":25,"dragon":5},{"part":"Legs","cut":30,"blunt":30,"ranged":25,"fire":5,"water":0,"thunder":10,"ice":20,"dragon":5},{"part":"Tail","cut":40,"blunt":35,"ranged":30,"fire":5,"water":0,"thunder":10,"ice":25,"dragon":5}]},{"name":"灭尽龙","slug":"aYaUV","url":"https://mhworld.kiranico.com/zh/monsters/aYaUV/mie-jin-long","parts":[{"part":"Horn","cut":20,"blunt":25,"ranged":35,"fire":5,"water":15,"thunder":20,"ice":0,"dragon":10},{"part":"Horn (Wounded)","cut":35,"blunt":40,"ranged":45,"fire":5,"water":15,"thunder":20,"ice":0,"dragon":5},{"part":"Head","cut":45,"blunt":60,"ranged":40,"fire":5,"water":10,"thunder":15,"ice":15,"dragon":5},{"part":"Body","cut":35,"blunt":30,"ranged":35,"fire":0,"water":0,"thunder":10,"ice":5,"dragon":5},{"part":"Back","cut":30,"blunt":35,"ranged":30,"fire":0,"water":0,"thunder":10,"ice":5,"dragon":5},{"part":"Forearms","cut":50,"blunt":45,"ranged":40,"fire":5,"water":5,"thunder":15,"ice":0,"dragon":5},{"part":"Hindlegs","cut":35,"blunt":30,"ranged":35,"fire":0,"water":0,"thunder":10,"ice":5,"dragon":5},{"part":"Wings","cut":40,"blunt":30,"ranged":30,"fire":10,"water":5,"thunder":10,"ice":5,"dragon":10},{"part":"Tail","cut":60,"blunt":45,"ranged":25,"fire":10,"water":5,"thunder":10,"ice":5,"dragon":5},{"part":"Tail Tip","cut":45,"blunt":35,"ranged":25,"fire":15,"water":5,"thunder":15,"ice":5,"dragon":10},{"part":"Head (White)","cut":75,"blunt":90,"ranged":70,"fire":5,"water":10,"thunder":15,"ice":15,"dragon":5},{"part":"Head (Black)","cut":20,"blunt":25,"ranged":15,"fire":5,"water":10,"thunder":20,"ice":15,"dragon":10},{"part":"Head (Gloss Black)","cut":20,"blunt":25,"ranged":15,"fire":5,"water":10,"thunder":20,"ice":15,"dragon":10},{"part":"Forearms (White)","cut":70,"blunt":60,"ranged":55,"fire":5,"water":5,"thunder":15,"ice":0,"dragon":5},{"part":"Forearms (Black)","cut":10,"blunt":15,"ranged":10,"fire":5,"water":5,"thunder":20,"ice":0,"dragon":10},{"part":"Forearms (Gloss Black)","cut":10,"blunt":15,"ranged":10,"fire":5,"water":5,"thunder":20,"ice":0,"dragon":10},{"part":"Tail Tip (White)","cut":55,"blunt":45,"ranged":45,"fire":10,"water":5,"thunder":10,"ice":5,"dragon":15},{"part":"Tail Tip (Black)","cut":28,"blunt":25,"ranged":25,"fire":10,"water":5,"thunder":15,"ice":5,"dragon":20},{"part":"Tail Tip (Gloss Black)","cut":28,"blunt":25,"ranged":25,"fire":10,"water":5,"thunder":15,"ice":5,"dragon":20},{"part":"Wings (White)","cut":65,"blunt":55,"ranged":40,"fire":15,"water":5,"thunder":15,"ice":5,"dragon":10},{"part":"Wings (Black)","cut":25,"blunt":20,"ranged":10,"fire":15,"water":5,"thunder":20,"ice":5,"dragon":15},{"part":"Wings (Gloss Black)","cut":25,"blunt":20,"ranged":10,"fire":15,"water":5,"thunder":20,"ice":5,"dragon":15}]},{"name":"惶怒恐暴龙","slug":"B02Tk","url":"https://mhworld.kiranico.com/zh/monsters/B02Tk/huang-nu-kong-bao-long","parts":[{"part":"Head","cut":40,"blunt":45,"ranged":25,"fire":20,"water":25,"thunder":25,"ice":10,"dragon":30},{"part":"Neck","cut":22,"blunt":22,"ranged":15,"fire":10,"water":10,"thunder":15,"ice":10,"dragon":15},{"part":"Chest","cut":45,"blunt":40,"ranged":25,"fire":25,"water":20,"thunder":30,"ice":10,"dragon":25},{"part":"Back","cut":20,"blunt":25,"ranged":15,"fire":5,"water":15,"thunder":10,"ice":10,"dragon":20},{"part":"Forelegs","cut":20,"blunt":25,"ranged":45,"fire":5,"water":15,"thunder":10,"ice":10,"dragon":20},{"part":"Hindlegs","cut":33,"blunt":36,"ranged":20,"fire":15,"water":5,"thunder":20,"ice":10,"dragon":10},{"part":"Tail","cut":36,"blunt":33,"ranged":20,"fire":15,"water":5,"thunder":20,"ice":10,"dragon":10},{"part":"Head (Broken)","cut":55,"blunt":60,"ranged":40,"fire":20,"water":25,"thunder":25,"ice":15,"dragon":30},{"part":"Chest (Broken)","cut":60,"blunt":55,"ranged":45,"fire":25,"water":20,"thunder":30,"ice":15,"dragon":25},{"part":"Tail (Broken)","cut":40,"blunt":40,"ranged":25,"fire":15,"water":5,"thunder":20,"ice":15,"dragon":10}]},{"name":"熔岩龙","slug":"BL1ca","url":"https://mhworld.kiranico.com/zh/monsters/BL1ca/rong-yan-long","parts":[{"part":"Head (Magma Armor)","cut":15,"blunt":20,"ranged":15,"fire":50,"water":15,"thunder":0,"ice":0,"dragon":5},{"part":"Neck","cut":15,"blunt":15,"ranged":15,"fire":10,"water":10,"thunder":0,"ice":0,"dragon":5},{"part":"Body","cut":35,"blunt":35,"ranged":35,"fire":10,"water":10,"thunder":0,"ice":0,"dragon":5},{"part":"Back (Magma Armor)","cut":20,"blunt":20,"ranged":20,"fire":10,"water":15,"thunder":0,"ice":0,"dragon":5},{"part":"Fins","cut":30,"blunt":30,"ranged":30,"fire":10,"water":10,"thunder":0,"ice":0,"dragon":5},{"part":"Legs (Magma Armor)","cut":15,"blunt":15,"ranged":15,"fire":10,"water":5,"thunder":0,"ice":0,"dragon":5},{"part":"Tail (Magma Armor)","cut":20,"blunt":15,"ranged":20,"fire":10,"water":10,"thunder":0,"ice":0,"dragon":5},{"part":"Head (Wounded)","cut":35,"blunt":40,"ranged":35,"fire":5,"water":35,"thunder":15,"ice":15,"dragon":5},{"part":"Back (Wounded)","cut":35,"blunt":35,"ranged":35,"fire":5,"water":30,"thunder":20,"ice":20,"dragon":5},{"part":"Legs (Wounded)","cut":30,"blunt":30,"ranged":30,"fire":5,"water":25,"thunder":5,"ice":5,"dragon":5},{"part":"Tail (Wounded)","cut":35,"blunt":30,"ranged":35,"fire":5,"water":30,"thunder":15,"ice":15,"dragon":5},{"part":"Head (Heated)","cut":55,"blunt":60,"ranged":55,"fire":0,"water":45,"thunder":10,"ice":10,"dragon":5},{"part":"Back (Heated)","cut":50,"blunt":45,"ranged":50,"fire":0,"water":35,"thunder":15,"ice":15,"dragon":5},{"part":"Legs (Heated)","cut":40,"blunt":40,"ranged":40,"fire":0,"water":30,"thunder":5,"ice":5,"dragon":5},{"part":"Tail (Heated)","cut":45,"blunt":40,"ranged":45,"fire":0,"water":35,"thunder":10,"ice":10,"dragon":5},{"part":"Head (Magma Armor)","cut":15,"blunt":17,"ranged":15,"fire":50,"water":15,"thunder":0,"ice":0,"dragon":5},{"part":"Back (Magma Armor)","cut":17,"blunt":17,"ranged":17,"fire":10,"water":15,"thunder":0,"ice":0,"dragon":5},{"part":"Legs (Magma Armor)","cut":15,"blunt":15,"ranged":15,"fire":10,"water":5,"thunder":0,"ice":0,"dragon":5},{"part":"Tail (Magma Armor)","cut":17,"blunt":15,"ranged":17,"fire":10,"water":10,"thunder":0,"ice":0,"dragon":5}]},{"name":"火龙","slug":"BnetX","url":"https://mhworld.kiranico.com/zh/monsters/BnetX/huo-long","parts":[{"part":"Head","cut":65,"blunt":70,"ranged":60,"fire":0,"water":15,"thunder":20,"ice":15,"dragon":30},{"part":"Neck","cut":35,"blunt":40,"ranged":30,"fire":0,"water":5,"thunder":10,"ice":5,"dragon":20},{"part":"Body","cut":25,"blunt":25,"ranged":20,"fire":0,"water":5,"thunder":10,"ice":5,"dragon":20},{"part":"Back","cut":25,"blunt":25,"ranged":20,"fire":0,"water":5,"thunder":10,"ice":5,"dragon":20},{"part":"Wings","cut":50,"blunt":45,"ranged":40,"fire":0,"water":10,"thunder":15,"ice":10,"dragon":25},{"part":"Legs","cut":35,"blunt":35,"ranged":30,"fire":0,"water":0,"thunder":5,"ice":0,"dragon":15},{"part":"Tail","cut":45,"blunt":40,"ranged":35,"fire":0,"water":5,"thunder":10,"ice":5,"dragon":20},{"part":"Head","cut":60,"blunt":65,"ranged":50,"fire":0,"water":15,"thunder":20,"ice":15,"dragon":30},{"part":"Neck","cut":35,"blunt":37,"ranged":30,"fire":0,"water":5,"thunder":10,"ice":5,"dragon":20},{"part":"Wings","cut":20,"blunt":21,"ranged":19,"fire":0,"water":10,"thunder":15,"ice":10,"dragon":25}]},{"name":"樱火龙","slug":"BnNTd","url":"https://mhworld.kiranico.com/zh/monsters/BnNTd/ying-huo-long","parts":[{"part":"Head","cut":60,"blunt":65,"ranged":55,"fire":0,"water":15,"thunder":20,"ice":15,"dragon":30},{"part":"Neck","cut":30,"blunt":35,"ranged":25,"fire":0,"water":0,"thunder":5,"ice":0,"dragon":15},{"part":"Body","cut":22,"blunt":22,"ranged":20,"fire":0,"water":5,"thunder":10,"ice":5,"dragon":20},{"part":"Back","cut":22,"blunt":22,"ranged":20,"fire":0,"water":5,"thunder":10,"ice":5,"dragon":20},{"part":"Wings","cut":50,"blunt":45,"ranged":40,"fire":0,"water":10,"thunder":15,"ice":10,"dragon":25},{"part":"Legs","cut":40,"blunt":40,"ranged":35,"fire":0,"water":0,"thunder":5,"ice":0,"dragon":15},{"part":"Tail","cut":20,"blunt":25,"ranged":20,"fire":0,"water":5,"thunder":10,"ice":5,"dragon":20},{"part":"Tail Tip","cut":50,"blunt":45,"ranged":40,"fire":0,"water":5,"thunder":10,"ice":5,"dragon":20},{"part":"Body","cut":20,"blunt":20,"ranged":20,"fire":0,"water":5,"thunder":10,"ice":5,"dragon":20},{"part":"Back","cut":20,"blunt":20,"ranged":20,"fire":0,"water":5,"thunder":10,"ice":5,"dragon":20},{"part":"Legs","cut":37,"blunt":37,"ranged":35,"fire":0,"water":0,"thunder":5,"ice":0,"dragon":15},{"part":"Tail","cut":18,"blunt":18,"ranged":20,"fire":0,"water":5,"thunder":10,"ice":5,"dragon":20}]},{"name":"岩贼龙","slug":"DmeH0","url":"https://mhworld.kiranico.com/zh/monsters/DmeH0/yan-zei-long","parts":[{"part":"Head","cut":35,"blunt":35,"ranged":25,"fire":0,"water":20,"thunder":30,"ice":20,"dragon":10},{"part":"Neck","cut":30,"blunt":30,"ranged":20,"fire":0,"water":10,"thunder":25,"ice":10,"dragon":5},{"part":"Head (Rock 1)","cut":75,"blunt":75,"ranged":65,"fire":0,"water":20,"thunder":30,"ice":20,"dragon":10},{"part":"Neck (Rock 1)","cut":65,"blunt":65,"ranged":55,"fire":0,"water":10,"thunder":25,"ice":10,"dragon":5},{"part":"Head (Rock 2)","cut":100,"blunt":100,"ranged":90,"fire":0,"water":20,"thunder":30,"ice":20,"dragon":10},{"part":"Neck (Rock 2)","cut":90,"blunt":90,"ranged":80,"fire":0,"water":10,"thunder":25,"ice":10,"dragon":5},{"part":"Body","cut":45,"blunt":45,"ranged":40,"fire":0,"water":5,"thunder":10,"ice":5,"dragon":5},{"part":"Back","cut":45,"blunt":45,"ranged":40,"fire":0,"water":5,"thunder":10,"ice":5,"dragon":5},{"part":"Forelegs","cut":45,"blunt":45,"ranged":40,"fire":0,"water":5,"thunder":10,"ice":5,"dragon":5},{"part":"Hindlegs","cut":45,"blunt":45,"ranged":40,"fire":0,"water":5,"thunder":10,"ice":5,"dragon":5},{"part":"Tail","cut":60,"blunt":60,"ranged":50,"fire":0,"water":10,"thunder":15,"ice":10,"dragon":5},{"part":"Head (Rock 1)","cut":60,"blunt":60,"ranged":52,"fire":0,"water":20,"thunder":30,"ice":20,"dragon":10},{"part":"Neck (Rock 1)","cut":52,"blunt":52,"ranged":45,"fire":0,"water":10,"thunder":25,"ice":10,"dragon":5},{"part":"Head (Rock 2)","cut":80,"blunt":80,"ranged":72,"fire":0,"water":20,"thunder":30,"ice":20,"dragon":10},{"part":"Neck (Rock 2)","cut":72,"blunt":72,"ranged":64,"fire":0,"water":10,"thunder":25,"ice":10,"dragon":5},{"part":"Tail","cut":48,"blunt":48,"ranged":45,"fire":0,"water":10,"thunder":15,"ice":10,"dragon":5}]},{"name":"大痹贼龙","slug":"eMAHO","url":"https://mhworld.kiranico.com/zh/monsters/eMAHO/da-bi-zei-long","parts":[{"part":"Head","cut":80,"blunt":85,"ranged":75,"fire":15,"water":30,"thunder":0,"ice":20,"dragon":10},{"part":"Neck","cut":40,"blunt":45,"ranged":35,"fire":5,"water":20,"thunder":0,"ice":10,"dragon":5},{"part":"Body","cut":35,"blunt":35,"ranged":30,"fire":0,"water":15,"thunder":0,"ice":5,"dragon":0},{"part":"Back","cut":35,"blunt":35,"ranged":30,"fire":0,"water":15,"thunder":0,"ice":5,"dragon":0},{"part":"Forelegs","cut":55,"blunt":50,"ranged":45,"fire":10,"water":25,"thunder":0,"ice":15,"dragon":5},{"part":"Hindlegs","cut":40,"blunt":40,"ranged":35,"fire":0,"water":15,"thunder":0,"ice":5,"dragon":0},{"part":"Tail","cut":50,"blunt":45,"ranged":40,"fire":5,"water":20,"thunder":0,"ice":10,"dragon":5},{"part":"Head","cut":65,"blunt":70,"ranged":60,"fire":15,"water":30,"thunder":0,"ice":20,"dragon":10},{"part":"Hindlegs","cut":35,"blunt":35,"ranged":30,"fire":0,"water":15,"thunder":0,"ice":5,"dragon":0}]},{"name":"熔山龙","slug":"EmVcV","url":"https://mhworld.kiranico.com/zh/monsters/EmVcV/rong-shan-long","parts":[{"part":"Head","cut":40,"blunt":40,"ranged":40,"fire":0,"water":20,"thunder":10,"ice":15,"dragon":20},{"part":"Body","cut":30,"blunt":30,"ranged":25,"fire":0,"water":10,"thunder":5,"ice":5,"dragon":10},{"part":"Chest (Before Wounded)","cut":50,"blunt":50,"ranged":30,"fire":0,"water":25,"thunder":10,"ice":20,"dragon":25},{"part":"Chest (After Wounded)","cut":80,"blunt":80,"ranged":80,"fire":0,"water":30,"thunder":15,"ice":25,"dragon":30},{"part":"Forelegs","cut":30,"blunt":30,"ranged":25,"fire":0,"water":10,"thunder":5,"ice":5,"dragon":10},{"part":"Hindlegs","cut":25,"blunt":25,"ranged":20,"fire":0,"water":10,"thunder":5,"ice":5,"dragon":10},{"part":"Tail","cut":25,"blunt":25,"ranged":20,"fire":0,"water":10,"thunder":5,"ice":5,"dragon":10},{"part":"Shell","cut":1,"blunt":1,"ranged":1,"fire":0,"water":0,"thunder":0,"ice":0,"dragon":0},{"part":"","cut":0,"blunt":0,"ranged":0,"fire":0,"water":0,"thunder":0,"ice":0,"dragon":0},{"part":"Weak Shells","cut":60,"blunt":60,"ranged":50,"fire":0,"water":20,"thunder":10,"ice":15,"dragon":20}]},{"name":"煌黑龙","slug":"ErdcV","url":"https://mhworld.kiranico.com/zh/monsters/ErdcV/huang-hei-long","parts":[{"part":"Head (Fire)","cut":85,"blunt":85,"ranged":30,"fire":0,"water":10,"thunder":3,"ice":14,"dragon":1},{"part":"Neck (Fire)","cut":85,"blunt":85,"ranged":30,"fire":0,"water":10,"thunder":3,"ice":14,"dragon":1},{"part":"Body (Fire)","cut":20,"blunt":25,"ranged":45,"fire":0,"water":5,"thunder":1,"ice":7,"dragon":0},{"part":"Wings (Fire)","cut":35,"blunt":35,"ranged":25,"fire":0,"water":13,"thunder":4,"ice":18,"dragon":1},{"part":"Arms (Fire)","cut":60,"blunt":60,"ranged":20,"fire":0,"water":16,"thunder":5,"ice":22,"dragon":2},{"part":"Legs (Fire)","cut":40,"blunt":40,"ranged":25,"fire":0,"water":13,"thunder":4,"ice":18,"dragon":1},{"part":"Tail (Fire)","cut":40,"blunt":35,"ranged":40,"fire":0,"water":8,"thunder":2,"ice":11,"dragon":1},{"part":"Head (Ice)","cut":85,"blunt":85,"ranged":30,"fire":14,"water":3,"thunder":10,"ice":0,"dragon":1},{"part":"Neck (Ice)","cut":85,"blunt":85,"ranged":30,"fire":14,"water":3,"thunder":10,"ice":0,"dragon":1},{"part":"Body (Ice)","cut":20,"blunt":25,"ranged":45,"fire":7,"water":1,"thunder":5,"ice":0,"dragon":0},{"part":"Wings (Ice)","cut":35,"blunt":35,"ranged":25,"fire":18,"water":4,"thunder":13,"ice":0,"dragon":1},{"part":"Arms (Ice)","cut":60,"blunt":60,"ranged":20,"fire":22,"water":5,"thunder":16,"ice":0,"dragon":2},{"part":"Legs (Ice)","cut":40,"blunt":40,"ranged":25,"fire":18,"water":4,"thunder":13,"ice":0,"dragon":1},{"part":"Tail (Ice)","cut":40,"blunt":35,"ranged":40,"fire":11,"water":2,"thunder":8,"ice":0,"dragon":1},{"part":"Head (Dragon)","cut":85,"blunt":85,"ranged":30,"fire":6,"water":5,"thunder":5,"ice":6,"dragon":9},{"part":"Neck (Dragon)","cut":85,"blunt":85,"ranged":30,"fire":6,"water":5,"thunder":5,"ice":6,"dragon":9},{"part":"Body (Dragon)","cut":20,"blunt":25,"ranged":45,"fire":3,"water":2,"thunder":2,"ice":3,"dragon":4},{"part":"Wings (Dragon)","cut":35,"blunt":35,"ranged":25,"fire":8,"water":6,"thunder":6,"ice":8,"dragon":11},{"part":"Arms (Dragon)","cut":60,"blunt":60,"ranged":20,"fire":10,"water":8,"thunder":8,"ice":10,"dragon":14},{"part":"Legs (Dragon)","cut":40,"blunt":40,"ranged":25,"fire":8,"water":6,"thunder":6,"ice":8,"dragon":11},{"part":"Tail (Dragon)","cut":40,"blunt":35,"ranged":40,"fire":5,"water":4,"thunder":4,"ice":5,"dragon":7},{"part":"Head (No Element)","cut":85,"blunt":85,"ranged":30,"fire":13,"water":10,"thunder":10,"ice":13,"dragon":13},{"part":"Neck (No Element)","cut":85,"blunt":85,"ranged":30,"fire":13,"water":10,"thunder":10,"ice":13,"dragon":13},{"part":"Body (No Element)","cut":20,"blunt":25,"ranged":45,"fire":7,"water":5,"thunder":5,"ice":7,"dragon":7},{"part":"Wings (No Element)","cut":35,"blunt":35,"ranged":25,"fire":17,"water":13,"thunder":13,"ice":17,"dragon":17},{"part":"Arms (No Element)","cut":60,"blunt":60,"ranged":20,"fire":20,"water":16,"thunder":16,"ice":20,"dragon":20},{"part":"Legs (No Element)","cut":40,"blunt":40,"ranged":25,"fire":17,"water":13,"thunder":13,"ice":17,"dragon":17},{"part":"Tail (No Element)","cut":40,"blunt":35,"ranged":40,"fire":10,"water":8,"thunder":8,"ice":10,"dragon":10}]},{"name":"炎妃龙","slug":"j8gFA","url":"https://mhworld.kiranico.com/zh/monsters/j8gFA/yan-fei-long","parts":[{"part":"Head","cut":40,"blunt":60,"ranged":45,"fire":0,"water":7,"thunder":7,"ice":30,"dragon":25},{"part":"Neck","cut":33,"blunt":38,"ranged":33,"fire":0,"water":3,"thunder":3,"ice":20,"dragon":15},{"part":"Body","cut":20,"blunt":20,"ranged":20,"fire":0,"water":0,"thunder":0,"ice":15,"dragon":10},{"part":"Back","cut":20,"blunt":20,"ranged":20,"fire":0,"water":0,"thunder":0,"ice":15,"dragon":10},{"part":"Forelegs","cut":25,"blunt":30,"ranged":20,"fire":0,"water":3,"thunder":3,"ice":15,"dragon":10},{"part":"Hindlegs","cut":30,"blunt":25,"ranged":20,"fire":0,"water":3,"thunder":3,"ice":15,"dragon":10},{"part":"Wings","cut":55,"blunt":35,"ranged":40,"fire":0,"water":7,"thunder":7,"ice":25,"dragon":20},{"part":"Tail","cut":45,"blunt":38,"ranged":55,"fire":0,"water":3,"thunder":3,"ice":20,"dragon":15},{"part":"Head","cut":37,"blunt":60,"ranged":45,"fire":0,"water":7,"thunder":7,"ice":30,"dragon":25},{"part":"Neck","cut":33,"blunt":37,"ranged":33,"fire":0,"water":3,"thunder":3,"ice":20,"dragon":15},{"part":"Body","cut":17,"blunt":17,"ranged":20,"fire":0,"water":0,"thunder":0,"ice":15,"dragon":10},{"part":"Back","cut":17,"blunt":17,"ranged":20,"fire":0,"water":0,"thunder":0,"ice":15,"dragon":10},{"part":"Forelegs","cut":25,"blunt":30,"ranged":20,"fire":0,"water":3,"thunder":3,"ice":15,"dragon":10},{"part":"Hindlegs","cut":30,"blunt":25,"ranged":20,"fire":0,"water":3,"thunder":3,"ice":15,"dragon":10},{"part":"Wings","cut":55,"blunt":35,"ranged":40,"fire":0,"water":7,"thunder":7,"ice":25,"dragon":20},{"part":"Tail","cut":45,"blunt":37,"ranged":50,"fire":0,"water":3,"thunder":3,"ice":20,"dragon":15}]},{"name":"炎王龙","slug":"jGeS0","url":"https://mhworld.kiranico.com/zh/monsters/jGeS0/yan-wang-long","parts":[{"part":"Head","cut":55,"blunt":60,"ranged":50,"fire":0,"water":30,"thunder":10,"ice":25,"dragon":10},{"part":"Neck","cut":33,"blunt":38,"ranged":33,"fire":0,"water":20,"thunder":5,"ice":15,"dragon":5},{"part":"Body","cut":20,"blunt":20,"ranged":20,"fire":0,"water":15,"thunder":0,"ice":10,"dragon":0},{"part":"Back","cut":20,"blunt":20,"ranged":20,"fire":0,"water":15,"thunder":0,"ice":10,"dragon":0},{"part":"Forelegs","cut":38,"blunt":38,"ranged":33,"fire":0,"water":20,"thunder":5,"ice":15,"dragon":5},{"part":"Hindlegs","cut":30,"blunt":25,"ranged":20,"fire":0,"water":15,"thunder":5,"ice":10,"dragon":5},{"part":"Wings","cut":40,"blunt":35,"ranged":30,"fire":0,"water":25,"thunder":10,"ice":20,"dragon":10},{"part":"Tail","cut":38,"blunt":33,"ranged":28,"fire":0,"water":20,"thunder":5,"ice":15,"dragon":5},{"part":"Body","cut":18,"blunt":18,"ranged":18,"fire":0,"water":15,"thunder":0,"ice":10,"dragon":0},{"part":"Back","cut":18,"blunt":18,"ranged":18,"fire":0,"water":15,"thunder":0,"ice":10,"dragon":0}]},{"name":"激昂金狮子","slug":"jN0I7","url":"https://mhworld.kiranico.com/zh/monsters/jN0I7/ji-ang-jin-shi-zi","parts":[{"part":"Head","cut":55,"blunt":57,"ranged":45,"fire":0,"water":5,"thunder":0,"ice":20,"dragon":0},{"part":"Body","cut":30,"blunt":35,"ranged":20,"fire":0,"water":5,"thunder":0,"ice":10,"dragon":0},{"part":"Forelegs","cut":38,"blunt":38,"ranged":30,"fire":0,"water":5,"thunder":0,"ice":10,"dragon":0},{"part":"Forelegs (Furious)","cut":5,"blunt":5,"ranged":5,"fire":0,"water":5,"thunder":0,"ice":10,"dragon":0},{"part":"Hindlegs","cut":21,"blunt":21,"ranged":15,"fire":0,"water":5,"thunder":0,"ice":10,"dragon":0},{"part":"Tail","cut":35,"blunt":32,"ranged":25,"fire":0,"water":5,"thunder":0,"ice":10,"dragon":0},{"part":"Tail (Furious)","cut":47,"blunt":45,"ranged":35,"fire":0,"water":5,"thunder":0,"ice":10,"dragon":0},{"part":"Head (Furious)","cut":60,"blunt":62,"ranged":50,"fire":0,"water":5,"thunder":0,"ice":20,"dragon":0}]},{"name":"猛爆碎龙","slug":"JoYHZ","url":"https://mhworld.kiranico.com/zh/monsters/JoYHZ/meng-bao-sui-long","parts":[{"part":"Horn","cut":60,"blunt":65,"ranged":45,"fire":0,"water":10,"thunder":10,"ice":25,"dragon":5},{"part":"Head","cut":60,"blunt":65,"ranged":50,"fire":0,"water":5,"thunder":10,"ice":15,"dragon":5},{"part":"Neck","cut":32,"blunt":32,"ranged":30,"fire":0,"water":5,"thunder":5,"ice":10,"dragon":5},{"part":"Body","cut":32,"blunt":32,"ranged":30,"fire":0,"water":10,"thunder":5,"ice":15,"dragon":0},{"part":"Arms","cut":55,"blunt":50,"ranged":45,"fire":0,"water":10,"thunder":5,"ice":25,"dragon":0},{"part":"Legs","cut":32,"blunt":32,"ranged":30,"fire":0,"water":5,"thunder":5,"ice":10,"dragon":0},{"part":"Tail","cut":50,"blunt":45,"ranged":55,"fire":0,"water":10,"thunder":10,"ice":15,"dragon":5},{"part":"Tail Tip","cut":18,"blunt":30,"ranged":10,"fire":0,"water":10,"thunder":5,"ice":25,"dragon":10},{"part":"Horn (Flashpoint Slime)","cut":75,"blunt":75,"ranged":10,"fire":0,"water":20,"thunder":0,"ice":5,"dragon":0},{"part":"Forearms (Flashpoint Slime)","cut":75,"blunt":75,"ranged":10,"fire":0,"water":20,"thunder":0,"ice":5,"dragon":0},{"part":"Tail Tip (Flashpoint Slime)","cut":75,"blunt":75,"ranged":10,"fire":0,"water":20,"thunder":0,"ice":5,"dragon":0}]},{"name":"斩龙","slug":"Lk1ia","url":"https://mhworld.kiranico.com/zh/monsters/Lk1ia/zhan-long","parts":[{"part":"Head","cut":50,"blunt":55,"ranged":30,"fire":0,"water":25,"thunder":10,"ice":15,"dragon":15},{"part":"Neck","cut":37,"blunt":37,"ranged":25,"fire":0,"water":20,"thunder":10,"ice":13,"dragon":10},{"part":"Throat","cut":65,"blunt":65,"ranged":45,"fire":0,"water":30,"thunder":10,"ice":15,"dragon":10},{"part":"Back","cut":45,"blunt":45,"ranged":35,"fire":0,"water":20,"thunder":5,"ice":10,"dragon":10},{"part":"Body","cut":20,"blunt":20,"ranged":30,"fire":0,"water":15,"thunder":5,"ice":10,"dragon":10},{"part":"Forelegs","cut":20,"blunt":20,"ranged":18,"fire":0,"water":15,"thunder":5,"ice":5,"dragon":5},{"part":"Hindlegs","cut":37,"blunt":35,"ranged":25,"fire":0,"water":15,"thunder":5,"ice":5,"dragon":5},{"part":"Tail (Base)","cut":37,"blunt":35,"ranged":25,"fire":0,"water":20,"thunder":10,"ice":15,"dragon":15},{"part":"Tail","cut":37,"blunt":35,"ranged":25,"fire":0,"water":20,"thunder":5,"ice":10,"dragon":10},{"part":"Tail (Heated)","cut":65,"blunt":60,"ranged":45,"fire":0,"water":25,"thunder":10,"ice":15,"dragon":15},{"part":"Tail (Rust)","cut":20,"blunt":20,"ranged":15,"fire":0,"water":15,"thunder":5,"ice":5,"dragon":5}]},{"name":"溟波龙","slug":"Mzdfo","url":"https://mhworld.kiranico.com/zh/monsters/Mzdfo/ming-bo-long","parts":[{"part":"Head","cut":60,"blunt":65,"ranged":50,"fire":5,"water":0,"thunder":0,"ice":5,"dragon":10},{"part":"Neck","cut":45,"blunt":40,"ranged":45,"fire":10,"water":0,"thunder":0,"ice":5,"dragon":5},{"part":"Stomach","cut":40,"blunt":60,"ranged":50,"fire":10,"water":0,"thunder":0,"ice":5,"dragon":10},{"part":"Back","cut":30,"blunt":30,"ranged":45,"fire":10,"water":0,"thunder":0,"ice":5,"dragon":10},{"part":"Tail","cut":40,"blunt":35,"ranged":30,"fire":10,"water":0,"thunder":0,"ice":5,"dragon":15},{"part":"Forelegs","cut":65,"blunt":55,"ranged":30,"fire":5,"water":0,"thunder":0,"ice":5,"dragon":10},{"part":"Hindlegs","cut":25,"blunt":25,"ranged":25,"fire":5,"water":0,"thunder":0,"ice":5,"dragon":5},{"part":"Wings","cut":35,"blunt":35,"ranged":30,"fire":10,"water":0,"thunder":0,"ice":5,"dragon":15},{"part":"Head (Water)","cut":40,"blunt":40,"ranged":25,"fire":40,"water":0,"thunder":0,"ice":15,"dragon":30},{"part":"Neck (Water)","cut":25,"blunt":25,"ranged":40,"fire":25,"water":0,"thunder":0,"ice":10,"dragon":15},{"part":"Stomach (Water)","cut":30,"blunt":45,"ranged":45,"fire":20,"water":0,"thunder":0,"ice":15,"dragon":15},{"part":"Back (Water)","cut":25,"blunt":25,"ranged":30,"fire":30,"water":0,"thunder":0,"ice":10,"dragon":20},{"part":"Tail (Water)","cut":25,"blunt":25,"ranged":25,"fire":25,"water":0,"thunder":0,"ice":10,"dragon":15},{"part":"Forelegs (Water)","cut":45,"blunt":35,"ranged":20,"fire":10,"water":0,"thunder":0,"ice":15,"dragon":10},{"part":"Hindlegs (Water)","cut":20,"blunt":20,"ranged":20,"fire":10,"water":0,"thunder":0,"ice":5,"dragon":5},{"part":"Wings (Water)","cut":25,"blunt":25,"ranged":20,"fire":30,"water":5,"thunder":0,"ice":20,"dragon":20}]},{"name":"古代鹿首精","slug":"N3vuk","url":"https://mhworld.kiranico.com/zh/monsters/N3vuk/gu-dai-lu-shou-jing","parts":[{"part":"Head","cut":65,"blunt":65,"ranged":50,"fire":25,"water":0,"thunder":15,"ice":10,"dragon":15},{"part":"Body","cut":45,"blunt":45,"ranged":25,"fire":20,"water":0,"thunder":10,"ice":5,"dragon":10},{"part":"Arms","cut":45,"blunt":45,"ranged":30,"fire":20,"water":0,"thunder":10,"ice":5,"dragon":10},{"part":"Legs","cut":45,"blunt":45,"ranged":30,"fire":20,"water":0,"thunder":10,"ice":5,"dragon":10},{"part":"Crow","cut":0,"blunt":0,"ranged":0,"fire":0,"water":0,"thunder":0,"ice":0,"dragon":0}]},{"name":"毒妖鸟","slug":"nebTX","url":"https://mhworld.kiranico.com/zh/monsters/nebTX/du-yao-niao","parts":[{"part":"Head","cut":95,"blunt":90,"ranged":85,"fire":15,"water":0,"thunder":30,"ice":20,"dragon":10},{"part":"Tongue","cut":75,"blunt":80,"ranged":70,"fire":15,"water":0,"thunder":30,"ice":20,"dragon":10},{"part":"Neck","cut":40,"blunt":35,"ranged":30,"fire":5,"water":0,"thunder":20,"ice":10,"dragon":5},{"part":"Body","cut":35,"blunt":35,"ranged":30,"fire":0,"water":0,"thunder":15,"ice":5,"dragon":5},{"part":"Wings","cut":50,"blunt":45,"ranged":40,"fire":10,"water":0,"thunder":25,"ice":15,"dragon":5},{"part":"Legs","cut":45,"blunt":45,"ranged":40,"fire":0,"water":0,"thunder":15,"ice":5,"dragon":0},{"part":"Tail","cut":55,"blunt":50,"ranged":45,"fire":10,"water":0,"thunder":25,"ice":15,"dragon":5},{"part":"Tongue","cut":76,"blunt":72,"ranged":68,"fire":15,"water":0,"thunder":30,"ice":20,"dragon":10},{"part":"Head","cut":60,"blunt":64,"ranged":56,"fire":15,"water":0,"thunder":30,"ice":20,"dragon":10},{"part":"Legs","cut":23,"blunt":23,"ranged":20,"fire":0,"water":0,"thunder":15,"ice":5,"dragon":0}]},{"name":"歼世灭尽龙","slug":"oAnim","url":"https://mhworld.kiranico.com/zh/monsters/oAnim/jian-shi-mie-jin-long","parts":[{"part":"Horns","cut":20,"blunt":25,"ranged":35,"fire":5,"water":15,"thunder":15,"ice":0,"dragon":20},{"part":"Horns (Broken)","cut":35,"blunt":40,"ranged":45,"fire":5,"water":15,"thunder":15,"ice":0,"dragon":20},{"part":"Head","cut":45,"blunt":60,"ranged":45,"fire":5,"water":10,"thunder":10,"ice":15,"dragon":15},{"part":"Stomach","cut":35,"blunt":30,"ranged":35,"fire":0,"water":0,"thunder":10,"ice":5,"dragon":10},{"part":"Back","cut":30,"blunt":35,"ranged":30,"fire":0,"water":0,"thunder":10,"ice":5,"dragon":10},{"part":"Forearms","cut":50,"blunt":45,"ranged":40,"fire":5,"water":5,"thunder":15,"ice":0,"dragon":15},{"part":"Hindlegs","cut":35,"blunt":30,"ranged":35,"fire":0,"water":0,"thunder":10,"ice":5,"dragon":10},{"part":"Wings","cut":40,"blunt":30,"ranged":30,"fire":10,"water":5,"thunder":10,"ice":5,"dragon":10},{"part":"Tail","cut":45,"blunt":35,"ranged":25,"fire":10,"water":5,"thunder":10,"ice":5,"dragon":10},{"part":"Tail Tip","cut":45,"blunt":35,"ranged":25,"fire":15,"water":5,"thunder":15,"ice":5,"dragon":15},{"part":"Head (White)","cut":75,"blunt":90,"ranged":60,"fire":5,"water":10,"thunder":15,"ice":15,"dragon":15},{"part":"Head (Black)","cut":20,"blunt":25,"ranged":15,"fire":5,"water":10,"thunder":20,"ice":15,"dragon":20},{"part":"Forearms (White)","cut":70,"blunt":60,"ranged":55,"fire":5,"water":5,"thunder":15,"ice":0,"dragon":15},{"part":"Forearms (Black)","cut":20,"blunt":25,"ranged":15,"fire":15,"water":5,"thunder":15,"ice":5,"dragon":20},{"part":"Wings (White)","cut":55,"blunt":45,"ranged":45,"fire":10,"water":5,"thunder":10,"ice":5,"dragon":15},{"part":"Wings (Black)","cut":28,"blunt":25,"ranged":25,"fire":10,"water":5,"thunder":15,"ice":5,"dragon":20},{"part":"Tail Tip (White)","cut":65,"blunt":55,"ranged":45,"fire":15,"water":5,"thunder":15,"ice":5,"dragon":15},{"part":"Tail Tip (Black)","cut":10,"blunt":15,"ranged":15,"fire":5,"water":5,"thunder":15,"ice":0,"dragon":20}]},{"name":"泥鱼龙","slug":"oAyTx","url":"https://mhworld.kiranico.com/zh/monsters/oAyTx/ni-yu-long","parts":[{"part":"Head","cut":63,"blunt":63,"ranged":63,"fire":5,"water":0,"thunder":10,"ice":5,"dragon":5},{"part":"Neck","cut":43,"blunt":43,"ranged":43,"fire":5,"water":0,"thunder":10,"ice":5,"dragon":5},{"part":"Body","cut":35,"blunt":35,"ranged":35,"fire":10,"water":0,"thunder":25,"ice":5,"dragon":5},{"part":"Back","cut":25,"blunt":25,"ranged":25,"fire":5,"water":0,"thunder":15,"ice":5,"dragon":5},{"part":"Fin","cut":25,"blunt":25,"ranged":25,"fire":10,"water":0,"thunder":20,"ice":5,"dragon":5},{"part":"Legs","cut":30,"blunt":30,"ranged":25,"fire":15,"water":0,"thunder":30,"ice":5,"dragon":5},{"part":"Tail","cut":55,"blunt":50,"ranged":45,"fire":5,"water":0,"thunder":10,"ice":5,"dragon":5},{"part":"Head (Mud)","cut":50,"blunt":50,"ranged":40,"fire":0,"water":25,"thunder":0,"ice":5,"dragon":5},{"part":"Body (Mud)","cut":30,"blunt":30,"ranged":25,"fire":0,"water":25,"thunder":0,"ice":5,"dragon":5},{"part":"Legs (Mud)","cut":35,"blunt":35,"ranged":30,"fire":0,"water":25,"thunder":0,"ice":5,"dragon":5},{"part":"Tail (Mud)","cut":50,"blunt":50,"ranged":40,"fire":0,"water":25,"thunder":0,"ice":5,"dragon":5},{"part":"Head (Mud)","cut":23,"blunt":23,"ranged":23,"fire":0,"water":25,"thunder":0,"ice":5,"dragon":5},{"part":"Body (Mud)","cut":21,"blunt":21,"ranged":21,"fire":0,"water":25,"thunder":0,"ice":5,"dragon":5},{"part":"Legs (Mud)","cut":21,"blunt":21,"ranged":21,"fire":0,"water":25,"thunder":0,"ice":5,"dragon":5},{"part":"Tail (Mud)","cut":23,"blunt":23,"ranged":23,"fire":0,"water":25,"thunder":0,"ice":5,"dragon":5},{"part":"Head","cut":58,"blunt":58,"ranged":58,"fire":5,"water":0,"thunder":10,"ice":5,"dragon":5},{"part":"Back","cut":24,"blunt":24,"ranged":24,"fire":5,"water":0,"thunder":15,"ice":5,"dragon":5}]},{"name":"冰鱼龙","slug":"OqOIX","url":"https://mhworld.kiranico.com/zh/monsters/OqOIX/bing-yu-long","parts":[{"part":"Head","cut":46,"blunt":50,"ranged":45,"fire":25,"water":10,"thunder":15,"ice":0,"dragon":0},{"part":"Head (Snow)","cut":30,"blunt":34,"ranged":25,"fire":25,"water":0,"thunder":5,"ice":0,"dragon":0},{"part":"Body","cut":35,"blunt":35,"ranged":35,"fire":20,"water":5,"thunder":10,"ice":0,"dragon":0},{"part":"Body (Snow)","cut":30,"blunt":30,"ranged":25,"fire":20,"water":0,"thunder":5,"ice":0,"dragon":0},{"part":"Legs","cut":70,"blunt":65,"ranged":50,"fire":30,"water":10,"thunder":15,"ice":0,"dragon":0},{"part":"Tail","cut":40,"blunt":35,"ranged":35,"fire":20,"water":5,"thunder":10,"ice":0,"dragon":0},{"part":"Tail (Snow)","cut":34,"blunt":30,"ranged":25,"fire":20,"water":0,"thunder":5,"ice":0,"dragon":0}]},{"name":"浮眠龙","slug":"QNkhw","url":"https://mhworld.kiranico.com/zh/monsters/QNkhw/fu-mian-long","parts":[{"part":"Head","cut":55,"blunt":60,"ranged":45,"fire":15,"water":25,"thunder":10,"ice":10,"dragon":0},{"part":"Neck","cut":35,"blunt":40,"ranged":30,"fire":10,"water":15,"thunder":5,"ice":5,"dragon":0},{"part":"Neck Pouch","cut":70,"blunt":75,"ranged":50,"fire":15,"water":30,"thunder":10,"ice":10,"dragon":0},{"part":"Body","cut":46,"blunt":46,"ranged":35,"fire":10,"water":15,"thunder":5,"ice":5,"dragon":0},{"part":"Legs","cut":30,"blunt":30,"ranged":25,"fire":10,"water":15,"thunder":5,"ice":5,"dragon":0},{"part":"Wings","cut":30,"blunt":30,"ranged":40,"fire":10,"water":15,"thunder":5,"ice":5,"dragon":0},{"part":"Tail","cut":25,"blunt":25,"ranged":15,"fire":10,"water":15,"thunder":5,"ice":5,"dragon":0}]},{"name":"凶爪龙","slug":"v2gSW","url":"https://mhworld.kiranico.com/zh/monsters/v2gSW/xiong-zhua-long","parts":[{"part":"Head","cut":43,"blunt":45,"ranged":45,"fire":25,"water":35,"thunder":25,"ice":25,"dragon":5},{"part":"Head (Broken)","cut":65,"blunt":75,"ranged":55,"fire":20,"water":25,"thunder":20,"ice":20,"dragon":5},{"part":"Neck","cut":25,"blunt":30,"ranged":25,"fire":15,"water":20,"thunder":15,"ice":15,"dragon":5},{"part":"Body","cut":25,"blunt":25,"ranged":20,"fire":10,"water":15,"thunder":10,"ice":10,"dragon":5},{"part":"Back","cut":25,"blunt":25,"ranged":20,"fire":10,"water":15,"thunder":10,"ice":10,"dragon":5},{"part":"Forelegs","cut":34,"blunt":38,"ranged":30,"fire":20,"water":30,"thunder":20,"ice":20,"dragon":5},{"part":"Forelegs (Broken)","cut":45,"blunt":45,"ranged":40,"fire":10,"water":20,"thunder":10,"ice":10,"dragon":5},{"part":"Hindlegs","cut":30,"blunt":30,"ranged":25,"fire":20,"water":30,"thunder":20,"ice":20,"dragon":5},{"part":"Hindlegs (Broken)","cut":50,"blunt":50,"ranged":40,"fire":10,"water":20,"thunder":10,"ice":10,"dragon":5},{"part":"Tail","cut":25,"blunt":22,"ranged":25,"fire":20,"water":30,"thunder":20,"ice":20,"dragon":5},{"part":"Tail (Broken)","cut":50,"blunt":45,"ranged":45,"fire":10,"water":15,"thunder":10,"ice":10,"dragon":5},{"part":"Tail Tip","cut":45,"blunt":30,"ranged":40,"fire":15,"water":20,"thunder":15,"ice":15,"dragon":5}]},{"name":"狱狼龙","slug":"vmKTW","url":"https://mhworld.kiranico.com/zh/monsters/vmKTW/yu-lang-long","parts":[{"part":"Head","cut":55,"blunt":55,"ranged":50,"fire":10,"water":13,"thunder":15,"ice":10,"dragon":0},{"part":"Neck","cut":50,"blunt":50,"ranged":45,"fire":8,"water":10,"thunder":13,"ice":8,"dragon":0},{"part":"Torso","cut":30,"blunt":30,"ranged":20,"fire":5,"water":8,"thunder":10,"ice":5,"dragon":0},{"part":"Back","cut":30,"blunt":30,"ranged":20,"fire":3,"water":8,"thunder":10,"ice":3,"dragon":0},{"part":"Forelegs","cut":50,"blunt":50,"ranged":45,"fire":10,"water":13,"thunder":15,"ice":10,"dragon":0},{"part":"Hindlegs","cut":30,"blunt":30,"ranged":20,"fire":5,"water":8,"thunder":10,"ice":5,"dragon":0},{"part":"Tail","cut":40,"blunt":40,"ranged":35,"fire":8,"water":10,"thunder":13,"ice":8,"dragon":0},{"part":"Head (Charged)","cut":45,"blunt":45,"ranged":45,"fire":20,"water":25,"thunder":30,"ice":20,"dragon":0},{"part":"Neck (Charged)","cut":38,"blunt":38,"ranged":33,"fire":15,"water":20,"thunder":25,"ice":15,"dragon":0},{"part":"Torso (Charged)","cut":25,"blunt":25,"ranged":15,"fire":10,"water":15,"thunder":20,"ice":10,"dragon":0},{"part":"Back (Charged)","cut":50,"blunt":50,"ranged":50,"fire":0,"water":0,"thunder":0,"ice":0,"dragon":0},{"part":"Forelegs (Charged)","cut":38,"blunt":38,"ranged":33,"fire":20,"water":25,"thunder":30,"ice":20,"dragon":0},{"part":"Hindlegs (Charged)","cut":25,"blunt":25,"ranged":15,"fire":10,"water":15,"thunder":20,"ice":10,"dragon":0},{"part":"Tail (Charged)","cut":35,"blunt":35,"ranged":25,"fire":15,"water":20,"thunder":25,"ice":15,"dragon":0}]},{"name":"冥灯龙","slug":"wA8F8","url":"https://mhworld.kiranico.com/zh/monsters/wA8F8/ming-deng-long","parts":[{"part":"Head","cut":70,"blunt":70,"ranged":55,"fire":20,"water":10,"thunder":10,"ice":10,"dragon":20},{"part":"Neck","cut":30,"blunt":30,"ranged":25,"fire":15,"water":10,"thunder":10,"ice":10,"dragon":15},{"part":"Body","cut":25,"blunt":25,"ranged":25,"fire":15,"water":10,"thunder":10,"ice":10,"dragon":15},{"part":"Chest","cut":60,"blunt":60,"ranged":30,"fire":20,"water":10,"thunder":10,"ice":10,"dragon":20},{"part":"Forelegs","cut":50,"blunt":50,"ranged":45,"fire":20,"water":10,"thunder":10,"ice":10,"dragon":20},{"part":"Hindlegs","cut":22,"blunt":22,"ranged":15,"fire":10,"water":5,"thunder":5,"ice":5,"dragon":10},{"part":"Wings","cut":50,"blunt":50,"ranged":30,"fire":15,"water":10,"thunder":10,"ice":10,"dragon":15},{"part":"Tail","cut":25,"blunt":25,"ranged":15,"fire":10,"water":5,"thunder":5,"ice":5,"dragon":10},{"part":"Tail Tip","cut":70,"blunt":70,"ranged":45,"fire":20,"water":10,"thunder":10,"ice":10,"dragon":20},{"part":"Head (Wounded)","cut":80,"blunt":80,"ranged":60,"fire":20,"water":10,"thunder":10,"ice":10,"dragon":20},{"part":"Forelegs (Wounded)","cut":60,"blunt":60,"ranged":50,"fire":20,"water":10,"thunder":10,"ice":10,"dragon":20},{"part":"Wings (Wounded)","cut":60,"blunt":60,"ranged":40,"fire":15,"water":10,"thunder":10,"ice":10,"dragon":15},{"part":"Head (Critical State)","cut":80,"blunt":100,"ranged":60,"fire":15,"water":30,"thunder":30,"ice":30,"dragon":15},{"part":"Neck (Critical State)","cut":50,"blunt":50,"ranged":30,"fire":15,"water":30,"thunder":30,"ice":30,"dragon":15},{"part":"Body (Critical State)","cut":60,"blunt":60,"ranged":40,"fire":15,"water":30,"thunder":30,"ice":30,"dragon":15},{"part":"Chest (Critical State)","cut":100,"blunt":80,"ranged":70,"fire":15,"water":30,"thunder":30,"ice":30,"dragon":15},{"part":"Forelegs (Critical State)","cut":70,"blunt":90,"ranged":60,"fire":15,"water":30,"thunder":30,"ice":30,"dragon":15},{"part":"Hindlegs (Critical State)","cut":50,"blunt":50,"ranged":40,"fire":10,"water":20,"thunder":20,"ice":20,"dragon":10},{"part":"Wings (Critical State)","cut":100,"blunt":80,"ranged":50,"fire":15,"water":30,"thunder":30,"ice":30,"dragon":15},{"part":"Tail (Critical State)","cut":50,"blunt":50,"ranged":30,"fire":10,"water":20,"thunder":20,"ice":20,"dragon":10},{"part":"Tail Tip (Critical State)","cut":90,"blunt":90,"ranged":60,"fire":15,"water":30,"thunder":30,"ice":30,"dragon":15}]},{"name":"爆鳞龙","slug":"Xe7fm","url":"https://mhworld.kiranico.com/zh/monsters/Xe7fm/bao-lin-long","parts":[{"part":"Head","cut":80,"blunt":85,"ranged":60,"fire":0,"water":15,"thunder":25,"ice":20,"dragon":20},{"part":"Body","cut":45,"blunt":45,"ranged":35,"fire":0,"water":5,"thunder":15,"ice":10,"dragon":10},{"part":"Back","cut":30,"blunt":30,"ranged":25,"fire":0,"water":5,"thunder":15,"ice":10,"dragon":10},{"part":"Legs","cut":36,"blunt":34,"ranged":30,"fire":0,"water":5,"thunder":15,"ice":10,"dragon":10},{"part":"Wings","cut":25,"blunt":25,"ranged":65,"fire":0,"water":5,"thunder":15,"ice":10,"dragon":10},{"part":"Tail","cut":75,"blunt":70,"ranged":55,"fire":0,"water":10,"thunder":20,"ice":15,"dragon":15}]},{"name":"搔鸟","slug":"YQ1FE","url":"https://mhworld.kiranico.com/zh/monsters/YQ1FE/sao-niao","parts":[{"part":"Head","cut":85,"blunt":85,"ranged":75,"fire":15,"water":20,"thunder":15,"ice":15,"dragon":15},{"part":"Forearms","cut":65,"blunt":70,"ranged":55,"fire":15,"water":20,"thunder":15,"ice":15,"dragon":15},{"part":"Body","cut":45,"blunt":45,"ranged":40,"fire":15,"water":20,"thunder":15,"ice":15,"dragon":15},{"part":"Tail","cut":55,"blunt":50,"ranged":35,"fire":15,"water":20,"thunder":15,"ice":15,"dragon":15},{"part":"Rock","cut":5,"blunt":5,"ranged":5,"fire":5,"water":20,"thunder":5,"ice":5,"dragon":5},{"part":"Head","cut":68,"blunt":68,"ranged":60,"fire":15,"water":20,"thunder":15,"ice":15,"dragon":15},{"part":"Forearms","cut":52,"blunt":56,"ranged":45,"fire":15,"water":20,"thunder":15,"ice":15,"dragon":15}]},{"name":"爆锤龙","slug":"z99fb","url":"https://mhworld.kiranico.com/zh/monsters/z99fb/bao-chui-long","parts":[{"part":"Head","cut":70,"blunt":80,"ranged":50,"fire":0,"water":20,"thunder":15,"ice":15,"dragon":20},{"part":"Jaw","cut":19,"blunt":20,"ranged":10,"fire":0,"water":40,"thunder":5,"ice":20,"dragon":30},{"part":"Jaw (Wounded)","cut":55,"blunt":60,"ranged":40,"fire":0,"water":20,"thunder":5,"ice":15,"dragon":20},{"part":"Upper Neck","cut":22,"blunt":24,"ranged":10,"fire":0,"water":15,"thunder":0,"ice":10,"dragon":15},{"part":"Lower Neck","cut":25,"blunt":30,"ranged":25,"fire":0,"water":20,"thunder":0,"ice":10,"dragon":15},{"part":"Body","cut":50,"blunt":45,"ranged":45,"fire":0,"water":30,"thunder":5,"ice":15,"dragon":30},{"part":"Back","cut":22,"blunt":24,"ranged":10,"fire":0,"water":15,"thunder":0,"ice":10,"dragon":15},{"part":"Forearms","cut":25,"blunt":30,"ranged":20,"fire":0,"water":15,"thunder":0,"ice":10,"dragon":15},{"part":"Hindlegs","cut":45,"blunt":40,"ranged":20,"fire":0,"water":15,"thunder":0,"ice":10,"dragon":15},{"part":"Tail (Top)","cut":25,"blunt":25,"ranged":15,"fire":0,"water":15,"thunder":0,"ice":10,"dragon":15},{"part":"Tail (Bottom)","cut":35,"blunt":30,"ranged":25,"fire":0,"water":25,"thunder":5,"ice":10,"dragon":20},{"part":"Tail Tip","cut":25,"blunt":25,"ranged":15,"fire":0,"water":35,"thunder":0,"ice":15,"dragon":25},{"part":"Head","cut":60,"blunt":65,"ranged":45,"fire":0,"water":20,"thunder":15,"ice":15,"dragon":20},{"part":"Jaw","cut":18,"blunt":19,"ranged":10,"fire":0,"water":40,"thunder":5,"ice":20,"dragon":30},{"part":"Back","cut":20,"blunt":24,"ranged":15,"fire":0,"water":15,"thunder":0,"ice":10,"dragon":15},{"part":"","cut":20,"blunt":24,"ranged":15,"fire":0,"water":15,"thunder":0,"ice":10,"dragon":15},{"part":"Hindlegs","cut":43,"blunt":37,"ranged":20,"fire":0,"water":15,"thunder":0,"ice":10,"dragon":15}]},{"name":"土砂龙","slug":"Z9btN","url":"https://mhworld.kiranico.com/zh/monsters/Z9btN/tu-sha-long","parts":[{"part":"Head","cut":22,"blunt":25,"ranged":10,"fire":20,"water":0,"thunder":0,"ice":15,"dragon":10},{"part":"Head (Mud)","cut":20,"blunt":24,"ranged":9,"fire":0,"water":80,"thunder":0,"ice":15,"dragon":10},{"part":"Body","cut":46,"blunt":46,"ranged":50,"fire":20,"water":0,"thunder":0,"ice":10,"dragon":5},{"part":"Body (Mud)","cut":24,"blunt":24,"ranged":20,"fire":0,"water":80,"thunder":0,"ice":15,"dragon":10},{"part":"Arms","cut":80,"blunt":85,"ranged":75,"fire":30,"water":0,"thunder":0,"ice":10,"dragon":5},{"part":"Arms (Mud)","cut":35,"blunt":38,"ranged":30,"fire":0,"water":80,"thunder":0,"ice":15,"dragon":10},{"part":"Legs","cut":40,"blunt":35,"ranged":25,"fire":20,"water":0,"thunder":0,"ice":10,"dragon":5},{"part":"Legs (Mud)","cut":24,"blunt":24,"ranged":20,"fire":0,"water":80,"thunder":0,"ice":15,"dragon":10},{"part":"Tail","cut":55,"blunt":50,"ranged":40,"fire":25,"water":0,"thunder":0,"ice":15,"dragon":10},{"part":"Tail (Mud)","cut":25,"blunt":25,"ranged":22,"fire":0,"water":80,"thunder":0,"ice":15,"dragon":10}]},{"name":"大贼龙","slug":"zJ1Sb","url":"https://mhworld.kiranico.com/zh/monsters/zJ1Sb/da-zei-long","parts":[{"part":"Head","cut":80,"blunt":85,"ranged":75,"fire":30,"water":0,"thunder":20,"ice":15,"dragon":10},{"part":"Neck","cut":65,"blunt":70,"ranged":60,"fire":20,"water":0,"thunder":10,"ice":5,"dragon":5},{"part":"Body","cut":50,"blunt":45,"ranged":40,"fire":20,"water":0,"thunder":10,"ice":5,"dragon":0},{"part":"Back","cut":45,"blunt":40,"ranged":35,"fire":15,"water":0,"thunder":5,"ice":5,"dragon":0},{"part":"Forelegs","cut":65,"blunt":60,"ranged":55,"fire":25,"water":0,"thunder":15,"ice":10,"dragon":5},{"part":"Hindlegs","cut":45,"blunt":40,"ranged":35,"fire":15,"water":0,"thunder":5,"ice":0,"dragon":0},{"part":"Tail","cut":45,"blunt":45,"ranged":40,"fire":15,"water":0,"thunder":5,"ice":0,"dragon":0},{"part":"Stomach (Inflated)","cut":90,"blunt":95,"ranged":85,"fire":30,"water":0,"thunder":20,"ice":15,"dragon":10},{"part":"Head","cut":65,"blunt":70,"ranged":60,"fire":30,"water":0,"thunder":20,"ice":15,"dragon":10},{"part":"Neck","cut":50,"blunt":55,"ranged":45,"fire":20,"water":0,"thunder":10,"ice":5,"dragon":5},{"part":"Forelegs","cut":50,"blunt":45,"ranged":45,"fire":25,"water":0,"thunder":15,"ice":10,"dragon":5},{"part":"Stomach (Inflated)","cut":70,"blunt":75,"ranged":65,"fire":30,"water":0,"thunder":20,"ice":15,"dragon":10}]}];
+
+/* ---------- 常数表 ---------- */
+const WEP = {
+  '大剑':4.8,'太刀':3.3,'片手剑':1.4,'双剑':1.4,'大锤':5.2,'狩猎笛':5.2,
+  '长枪':2.3,'铳枪':2.3,'斩击斧':3.5,'充能斧':3.6,'操虫棍':3.1,
+  '轻弩':1.3,'重弩':1.5,'弓':1.2
+};
+const ATK_TYPE = {
+  '大剑':'cut','太刀':'cut','片手剑':'cut','双剑':'cut','大锤':'blunt','狩猎笛':'blunt',
+  '长枪':'cut','铳枪':'cut','斩击斧':'cut','充能斧':'cut','操虫棍':'cut',
+  '轻弩':'ranged','重弩':'ranged','弓':'ranged'
+};
+const ATK_TYPE_NAME = {cut:'切断',blunt:'打击',ranged:'遥远'};
+const SHARP = {
+  '红':{raw:1.00,ele:0.25}, '橙':{raw:1.00,ele:0.50}, '黄':{raw:1.00,ele:0.75},
+  '绿':{raw:1.05,ele:1.00}, '蓝':{raw:1.20,ele:1.0625}, '白':{raw:1.32,ele:1.15},
+  '紫':{raw:1.39,ele:1.25}
+};
+const ATK_BOOST = [
+  {flat:0,pct:0},{flat:3,pct:0},{flat:6,pct:0},{flat:9,pct:0},
+  {flat:12,pct:0.05},{flat:15,pct:0.06},{flat:18,pct:0.08},{flat:21,pct:0.10}
+];
+const CRIT_EYE = [0,5,10,15,20,25,30,40];
+const WEX = [0,10,15,30];
+const CRIT_BOOST = [1.25,1.30,1.35,1.40];
+const ELE_LIST = ['无','火','水','雷','冰','龙'];
+const ELE_KEY = {火:'fire',水:'water',雷:'thunder',冰:'ice',龙:'dragon'};
+
+/* ---------- 状态 ---------- */
+const state = {
+  monster:null, partIdx:0,
+  A:{weapon:'太刀',atk:1000,eleDisp:0,element:'无',aff:20,sharp:'白',atkLv:4,eyeLv:3,wexLv:3,cbLv:2,critEle:'none',extraRaw:0,pctBonus:0,eleExtra:0},
+  B:{weapon:'太刀',atk:1000,eleDisp:0,element:'无',aff:20,sharp:'白',atkLv:7,eyeLv:0,wexLv:3,cbLv:0,critEle:'none',extraRaw:0,pctBonus:0,eleExtra:0}
+};
+
+/* ---------- 工具 ---------- */
+const $ = id => document.getElementById(id);
+const fmt = (n,d=1) => (isFinite(n) ? n.toFixed(d) : '-');
+const num = v => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
+
+function expVal(normal, crit, a, negMul){
+  if (a >= 0) return normal*(1-a) + crit*a;
+  return normal*(1+a) + normal*negMul*(-a);
+}
+
+/* ---------- 计算 ---------- */
+function compute(build, monster, part, opts){
+  const mv = opts.mv/100;
+  const monMod = opts.monMod;
+  const atype = ATK_TYPE[build.weapon];
+  let zoneRaw = Number(part[atype]) || 0;
+  let zoneEle = build.element === '无' ? 0 : (Number(part[ELE_KEY[build.element]]) || 0);
+  if (opts.soft) {
+    zoneRaw = Math.min(100, 0.75*zoneRaw + 25);
+    zoneEle = Math.min(100, 0.75*zoneEle + 25);
+  }
+
+  const mult = WEP[build.weapon];
+  const boost = ATK_BOOST[build.atkLv] || ATK_BOOST[0];
+  const trueRaw = (build.atk / mult) + boost.flat + build.extraRaw;
+  const rawTotal = trueRaw * (1 + boost.pct + build.pctBonus);
+
+  let aff = build.aff + CRIT_EYE[build.eyeLv] + (zoneRaw >= 45 ? WEX[build.wexLv] : 0);
+  aff = Math.max(-100, Math.min(100, aff)) / 100;
+
+  const sh = SHARP[build.sharp];
+  const physBase = rawTotal * mv * sh.raw * (zoneRaw/100) * monMod;
+  const critMul = CRIT_BOOST[build.cbLv];
+  const physCrit = physBase * critMul;
+  const physExp = expVal(physBase, physCrit, aff, 0.75);
+
+  const trueEle = build.element === '无' ? 0 : (build.eleDisp/10 + build.eleExtra);
+  const eleBase = trueEle * sh.ele * (zoneEle/100) * monMod;
+  const eleCritMul = build.critEle === 'true' ? 1.55 : (build.critEle === 'element' ? 1.35 : 1.0);
+  const eleCrit = eleBase * (build.element === '无' ? 1 : eleCritMul);
+  const eleExp = build.element === '无' ? 0 : (aff >= 0 ? eleBase*(1-aff) + eleCrit*aff : eleBase);
+
+  return {
+    trueRaw, rawTotal, aff: aff*100, zoneRaw, zoneEle,
+    physBase, physCrit, physExp, eleBase, eleCrit, eleExp,
+    totalBase: physBase+eleBase, totalCrit: physCrit+eleCrit,
+    totalExp: physExp+eleExp, critMul
+  };
+}
+
+/* ---------- 渲染：怪物与部位 ---------- */
+function fillMonsterSelect(){
+  const sel = $('monster');
+  sel.innerHTML = '';
+  const list = MHW_DATA.slice().sort((a,b)=>a.name.localeCompare(b.name,'zh'));
+  list.forEach((m,i)=>{
+    const o = document.createElement('option');
+    o.value = m.slug; o.textContent = m.name;
+    sel.appendChild(o);
+  });
+  sel.onchange = ()=>{
+    state.monster = MHW_DATA.find(m=>m.slug===sel.value) || MHW_DATA[0];
+    state.partIdx = 0;
+    renderParts(); renderMonsterTable(); renderResult();
+  };
+  state.monster = list[0];
+  if (sel.options.length) sel.value = state.monster.slug;
+}
+
+function renderParts(){
+  const box = $('parts'); box.innerHTML = '';
+  const m = state.monster;
+  m.parts.forEach((p,i)=>{
+    const d = document.createElement('div');
+    d.className = 'chip' + (i===state.partIdx ? ' on' : '');
+    const z = p[ATK_TYPE[state.A.weapon]];
+    d.textContent = p.part + (z>=45 ? ' ★' : '');
+    d.onclick = ()=>{ state.partIdx = i; renderParts(); renderMonsterTable(); renderResult(); };
+    box.appendChild(d);
+  });
+}
+
+function renderMonsterTable(){
+  const m = state.monster;
+  let h = '<table class="mt-table"><thead><tr><th>部位</th><th>切断</th><th>打击</th><th>遥远</th><th>火</th><th>水</th><th>雷</th><th>冰</th><th>龙</th></tr></thead><tbody>';
+  m.parts.forEach((p,i)=>{
+    const on = i===state.partIdx ? ' class="on"' : '';
+    h += `<tr${on}><td>${p.part}</td>` +
+      ['cut','blunt','ranged','fire','water','thunder','ice','dragon']
+        .map(k=>`<td class="${p[k]>=45?'zone-weak':''}">${p[k]}</td>`).join('') + '</tr>';
+  });
+  h += '</tbody></table>';
+  $('mtTable').innerHTML = h;
+}
+
+/* ---------- 渲染：配装输入 ---------- */
+function buildField(key, label, type, opts, side){
+  const b = state[side];
+  let ctrl = '';
+  const id = side + '_' + key;
+  if (type === 'select') {
+    ctrl = `<select id="${id}">` + opts.map(o=>`<option value="${o.v}"${b[key]===o.v?' selected':''}>${o.t}</option>`).join('') + '</select>';
+  } else {
+    ctrl = `<input type="number" id="${id}" value="${b[key]}" step="${opts.step||1}" min="${opts.min??0}" max="${opts.max??9999}">`;
+  }
+  return `<div class="field"><label>${label}</label>${ctrl}</div>`;
+}
+
+function renderBuild(side){
+  const box = $(side === 'A' ? 'buildA' : 'buildB');
+  const o = v => ({v:v,t:v});
+  let h = '';
+  h += buildField('weapon','武器类型','select', Object.keys(WEP).map(o), side);
+  h += buildField('atk','显示攻击力','number',{step:1}, side);
+  h += buildField('element','属性','select', ELE_LIST.map(o), side);
+  h += buildField('eleDisp','显示属性值','number',{step:1}, side);
+  h += buildField('aff','基础会心率 %','number',{step:5,min:-100,max:100}, side);
+  h += buildField('sharp','斩味','select', Object.keys(SHARP).map(o), side);
+  h += buildField('atkLv','攻击 Lv0-7','select', Array.from({length:8},(_,i)=>({v:i,t:'Lv'+i})), side);
+  h += buildField('eyeLv','看破 Lv0-7','select', Array.from({length:8},(_,i)=>({v:i,t:'Lv'+i})), side);
+  h += buildField('wexLv','弱点特效 Lv0-3','select', Array.from({length:4},(_,i)=>({v:i,t:'Lv'+i})), side);
+  h += buildField('cbLv','超会心 Lv0-3','select', Array.from({length:4},(_,i)=>({v:i,t:'Lv'+i})), side);
+  h += buildField('critEle','属性会心','select', [{v:'none',t:'无'},{v:'element',t:'会心击【属性】1.35×'},{v:'true',t:'真·会心 1.55×'}], side);
+  h += buildField('extraRaw','额外真实攻击力','number',{step:1}, side);
+  h += buildField('pctBonus','攻击力 % 加成','number',{step:0.01,min:-1,max:2}, side);
+  h += buildField('eleExtra','额外属性值','number',{step:1}, side);
+  box.innerHTML = h;
+
+  Object.keys(state[side]).forEach(k=>{
+    const el = document.getElementById(side + '_' + k);
+    if (!el) return;
+    el.oninput = el.onchange = ()=>{
+      state[side][k] = (el.tagName === 'SELECT' && isNaN(Number(el.value))) ? el.value
+                     : (el.type === 'number' ? num(el.value) : (isNaN(Number(el.value)) ? el.value : Number(el.value)));
+      if (k === 'weapon') renderParts();
+      renderResult();
+    };
+  });
+}
+
+/* ---------- 渲染：结果 ---------- */
+function renderResult(){
+  const m = state.monster;
+  const part = m.parts[state.partIdx];
+  if (!part) return;
+  const opts = { mv: num($('mv').value)||100, monMod: num($('monmod').value)||1, soft: $('soft').value === '1' };
+  const A = compute(state.A, m, part, opts);
+  const B = compute(state.B, m, part, opts);
+  const diff = A.totalExp - B.totalExp;
+  const winner = Math.abs(diff) < 0.05 ? 'flat' : (diff > 0 ? 'A' : 'B');
+
+  const maxv = Math.max(A.totalExp, B.totalExp, 1);
+
+  let h = '<table class="res"><thead><tr><th>项目</th><th>配装 A</th><th>配装 B</th><th>差值</th></tr></thead><tbody>';
+  const row = (label, a, b, d, cls='') => {
+    const dd = (a-b);
+    const ds = (dd>0?'+':'') + fmt(dd, 1);
+    return `<tr><td>${label}</td><td class="${cls}">${fmt(a,1)}</td><td class="${cls}">${fmt(b,1)}</td><td style="color:var(--dim)">${ds}</td></tr>`;
+  };
+  h += `<tr><td>部位 / 肉质</td><td>${part.part}</td><td colspan="2" style="text-align:right;color:var(--dim)">物理 ${fmt(A.zoneRaw,1)} · 属性 ${fmt(A.zoneEle,1)}</td></tr>`;
+  h += row('真实攻击力', A.trueRaw, B.trueRaw);
+  h += `<tr><td>会心率</td><td>${fmt(A.aff,0)}%</td><td>${fmt(B.aff,0)}%</td><td style="color:var(--dim)">${(A.aff-B.aff>0?'+':'')}${fmt(A.aff-B.aff,0)}%</td></tr>`;
+  h += row('物理 · 不会心', A.physBase, B.physBase);
+  h += row('物理 · 会心', A.physCrit, B.physCrit);
+  h += row('物理 · 期望', A.physExp, B.physExp, '');
+  h += row('属性 · 不会心', A.eleBase, B.eleBase);
+  h += row('属性 · 会心', A.eleCrit, B.eleCrit);
+  h += row('属性 · 期望', A.eleExp, B.eleExp, '');
+  h += `<tr><td><b>合计 · 期望伤害</b></td><td class="big ${winner==='A'?'win':''}">${fmt(A.totalExp,1)}</td><td class="big ${winner==='B'?'win':''}">${fmt(B.totalExp,1)}</td><td>${diff>0?'+':''}${fmt(diff,1)}</td></tr>`;
+  h += '</tbody></table>';
+
+  const pct = maxv ? Math.abs(diff)/maxv*100 : 0;
+  h += `<div style="margin-top:10px;font-size:13px" class="${winner==='flat'?'':(winner==='A'?'win':'win')}">`;
+  if (winner === 'flat') h += '两套配装期望伤害相同。';
+  else h += `配装 <b>${winner}</b> 更高，期望伤害多 <b>${fmt(Math.abs(diff),1)}</b>（约 ${fmt(pct,1)}%）。`;
+  h += '</div>';
+
+  h += `<div class="bar"><i style="width:${A.totalExp/maxv*100}%"></i></div>`;
+  h += `<div class="bar b"><i style="width:${B.totalExp/maxv*100}%"></i></div>`;
+
+  if (opts.soft) h += `<div class="note">已启用软化：物理/属性肉质按 0.75×肉质+25 计算。</div>`;
+
+  $('result').innerHTML = h;
+}
+
+/* ---------- 启动 ---------- */
+function init(){
+  fillMonsterSelect();
+  renderBuild('A');
+  renderBuild('B');
+  renderParts();
+  renderMonsterTable();
+  renderResult();
+  $('mv').oninput = renderResult;
+  $('monmod').oninput = renderResult;
+  $('soft').onchange = renderResult;
+  $('cov').textContent = MHW_DATA.length;
+}
+init();
+</script>
+</body>
+</html>

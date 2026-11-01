@@ -1,0 +1,21 @@
+{
+  "name": "恐暴龙",
+  "slug": "4rATd",
+  "url": "https://mhworld.kiranico.com/zh/monsters/4rATd/kong-bao-long",
+  "parts": [
+    {"part": "Head", "cut": 60, "blunt": 70, "ranged": 60, "fire": 10, "water": 10, "thunder": 15, "ice": 5, "dragon": 15},
+    {"part": "Head (Enraged)", "cut": 45, "blunt": 50, "ranged": 45, "fire": 15, "water": 15, "thunder": 20, "ice": 10, "dragon": 20},
+    {"part": "Body", "cut": 25, "blunt": 25, "ranged": 25, "fire": 5, "water": 5, "thunder": 20, "ice": 5, "dragon": 20},
+    {"part": "Body (Enraged)", "cut": 22, "blunt": 22, "ranged": 20, "fire": 10, "water": 10, "thunder": 25, "ice": 10, "dragon": 25},
+    {"part": "Chest", "cut": 37, "blunt": 37, "ranged": 35, "fire": 15, "water": 15, "thunder": 20, "ice": 10, "dragon": 20},
+    {"part": "Chest (Enraged)", "cut": 75, "blunt": 75, "ranged": 70, "fire": 20, "water": 20, "thunder": 25, "ice": 15, "dragon": 25},
+    {"part": "Lower Body", "cut": 30, "blunt": 30, "ranged": 30, "fire": 5, "water": 5, "thunder": 20, "ice": 5, "dragon": 20},
+    {"part": "Lower Body (Enraged)", "cut": 25, "blunt": 25, "ranged": 25, "fire": 10, "water": 10, "thunder": 25, "ice": 10, "dragon": 25},
+    {"part": "Arms", "cut": 30, "blunt": 30, "ranged": 30, "fire": 10, "water": 10, "thunder": 15, "ice": 5, "dragon": 15},
+    {"part": "Arms (Enraged)", "cut": 25, "blunt": 25, "ranged": 25, "fire": 15, "water": 15, "thunder": 20, "ice": 10, "dragon": 20},
+    {"part": "Legs", "cut": 45, "blunt": 38, "ranged": 35, "fire": 5, "water": 5, "thunder": 10, "ice": 5, "dragon": 10},
+    {"part": "Legs (Enraged)", "cut": 24, "blunt": 25, "ranged": 25, "fire": 10, "water": 10, "thunder": 15, "ice": 10, "dragon": 15},
+    {"part": "Tail", "cut": 40, "blunt": 35, "ranged": 25, "fire": 5, "water": 5, "thunder": 20, "ice": 5, "dragon": 20},
+    {"part": "Tail (Enraged)", "cut": 25, "blunt": 24, "ranged": 20, "fire": 10, "water": 10, "thunder": 25, "ice": 10, "dragon": 25}
+  ]
+}

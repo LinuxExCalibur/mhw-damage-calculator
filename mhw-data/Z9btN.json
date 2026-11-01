@@ -1,0 +1,12 @@
+{"name":"土砂龙","slug":"Z9btN","url":"https://mhworld.kiranico.com/zh/monsters/Z9btN/tu-sha-long","parts":[
+{"part":"Head","cut":22,"blunt":25,"ranged":10,"fire":20,"water":0,"thunder":0,"ice":15,"dragon":10},
+{"part":"Head (Mud)","cut":20,"blunt":24,"ranged":9,"fire":0,"water":80,"thunder":0,"ice":15,"dragon":10},
+{"part":"Body","cut":46,"blunt":46,"ranged":50,"fire":20,"water":0,"thunder":0,"ice":10,"dragon":5},
+{"part":"Body (Mud)","cut":24,"blunt":24,"ranged":20,"fire":0,"water":80,"thunder":0,"ice":15,"dragon":10},
+{"part":"Arms","cut":80,"blunt":85,"ranged":75,"fire":30,"water":0,"thunder":0,"ice":10,"dragon":5},
+{"part":"Arms (Mud)","cut":35,"blunt":38,"ranged":30,"fire":0,"water":80,"thunder":0,"ice":15,"dragon":10},
+{"part":"Legs","cut":40,"blunt":35,"ranged":25,"fire":20,"water":0,"thunder":0,"ice":10,"dragon":5},
+{"part":"Legs (Mud)","cut":24,"blunt":24,"ranged":20,"fire":0,"water":80,"thunder":0,"ice":15,"dragon":10},
+{"part":"Tail","cut":55,"blunt":50,"ranged":40,"fire":25,"water":0,"thunder":0,"ice":15,"dragon":10},
+{"part":"Tail (Mud)","cut":25,"blunt":25,"ranged":22,"fire":0,"water":80,"thunder":0,"ice":15,"dragon":10}
+]}
