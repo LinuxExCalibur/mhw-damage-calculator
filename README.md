@@ -100,7 +100,7 @@ tools/dom_test.js   渲染冒烟测试（Node + 极简 DOM 替身）
 # 扩充数据后重新生成 index.html
 powershell -ExecutionPolicy Bypass -File tools\build.ps1
 
-# 数值测试：932 个「怪物 × 部位 × 配装」组合
+# 数值测试：1422 个「怪物 × 部位 × 配装」组合
 node tools\test.js index.html
 ```
 
