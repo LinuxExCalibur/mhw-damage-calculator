@@ -6,10 +6,8 @@
 
 ## 在线使用
 
-启用 GitHub Pages 后可直接访问：
-
 ```
-https://<你的用户名>.github.io/<仓库名>/
+https://linuxexcalibur.github.io/mhw-damage-calculator/
 ```
 
 也可以把 `index.html` 下载到本地，双击用浏览器打开。
