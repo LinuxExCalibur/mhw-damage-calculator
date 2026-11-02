@@ -32,7 +32,7 @@ MHW_DATA.forEach(m => {
 
 // 2. 取灭尽龙头部核对（页面原始值 45/60/40, 火5 水10 雷15 冰15 龙5）
 const nerg = MHW_DATA.find(m => m.slug === 'aYaUV');
-const head = nerg.parts.find(p => p.part === 'Head');
+const head = nerg.parts.find(p => p.part === '头部');
 ok(head.cut === 45 && head.blunt === 60 && head.ranged === 40, '灭尽龙头部物理肉质不符');
 ok(head.fire === 5 && head.water === 10 && head.thunder === 15 && head.ice === 15 && head.dragon === 5, '灭尽龙头部属性肉质不符');
 console.log('灭尽龙头部: ' + JSON.stringify(head));
@@ -71,13 +71,13 @@ ok(near(rA.rawTotal, (1000/3.3 + 21)*1.10, 0.01), '攻击 Lv7 rawTotal 错误: '
 // 7. 弱点特效：肉质45 应触发 +30；肉质44 不应触发
 const wex = Object.assign({}, build, {wexLv:3});
 ok(near(compute(wex, nerg, head, opts).aff, 30, 0.01), '弱特3 在肉质45时未生效');
-const bodyPart = nerg.parts.find(p => p.part === 'Body'); // cut 35
+const bodyPart = nerg.parts.find(p => p.part === '身体'); // cut 35
 ok(near(compute(wex, nerg, bodyPart, opts).aff, 0, 0.01), '弱特3 在肉质35时不应生效');
 
 // 8. 属性计算：火龙头部 雷属性
 const rath = MHW_DATA.find(m => m.name === '火龙');
 if (rath) {
-  const rhead = rath.parts.find(p => p.part === 'Head');
+  const rhead = rath.parts.find(p => p.part.indexOf('头部') === 0);
   const be = Object.assign({}, build, {element:'雷', eleDisp:300, critEle:'element', aff:100});
   const re = compute(be, rath, rhead, opts);
   const trueEle = 300/10;

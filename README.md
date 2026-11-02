@@ -81,6 +81,15 @@ https://linuxexcalibur.github.io/mhw-damage-calculator/
 
 已覆盖 Kiranico 收录的绝大多数大型怪物。**欢迎补充**：新增怪物只需要在 `mhw-data/` 下加一个 JSON（参考现有文件的结构），然后跑 `tools/build.ps1` 重新生成 `index.html`。
 
+### 部位名中文化
+
+Kiranico 的世界版肉质表用英文部位名（`Head`、`Forelegs (Wounded)`、`Tail (Magma Armor)` 等）。项目按 `tools/part-name-map.json` 做「基名 + 限定词」组合翻译：
+
+- **基名**：Head → 头部、Neck → 颈部、Forelegs / Forearms → 前肢、Hindlegs → 后肢、Tail Tip → 尾巴尖、Wing Webbings → 翼膜、Rock Head Casing → 岩石头壳…
+- **限定词**：Broken → 破坏、Wounded → 软化、After Wounded → 软化后、Critical State → 临界状态、Enraged → 怒、Magma Armor → 熔岩装甲、Flashpoint Slime → 起爆黏菌…
+
+同一怪物内出现同名部位时加序号区分，如钢龙的「颈部①」「颈部②」。另有 4 行在页面上没有部位名，已剔除。
+
 ## 目录结构
 
 ```
@@ -88,6 +97,7 @@ index.html          构建产物（计算器本体，可直接打开）
 mhw-data/*.json     每只怪物的部位肉质数据
 tools/template.html 界面与计算逻辑模板（含 __MHW_DATA__ 占位符）
 tools/build.ps1     把数据注入模板，生成 index.html
+tools/part-name-map.json  部位名中英文对照表（基名 + 限定词）
 tools/test.js       数值单元测试（Node）
 tools/dom_test.js   渲染冒烟测试（Node + 极简 DOM 替身）
 ```

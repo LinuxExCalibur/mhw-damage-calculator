@@ -1,7 +1,1 @@
-{"name":"古代鹿首精","slug":"N3vuk","url":"https://mhworld.kiranico.com/zh/monsters/N3vuk/gu-dai-lu-shou-jing","parts":[
-{"part":"Head","cut":65,"blunt":65,"ranged":50,"fire":25,"water":0,"thunder":15,"ice":10,"dragon":15},
-{"part":"Body","cut":45,"blunt":45,"ranged":25,"fire":20,"water":0,"thunder":10,"ice":5,"dragon":10},
-{"part":"Arms","cut":45,"blunt":45,"ranged":30,"fire":20,"water":0,"thunder":10,"ice":5,"dragon":10},
-{"part":"Legs","cut":45,"blunt":45,"ranged":30,"fire":20,"water":0,"thunder":10,"ice":5,"dragon":10},
-{"part":"Crow","cut":0,"blunt":0,"ranged":0,"fire":0,"water":0,"thunder":0,"ice":0,"dragon":0}
-]}
+{"name":"古代鹿首精","slug":"N3vuk","url":"https://mhworld.kiranico.com/zh/monsters/N3vuk/gu-dai-lu-shou-jing","parts":[{"part":"头部","cut":65,"blunt":65,"ranged":50,"fire":25,"water":0,"thunder":15,"ice":10,"dragon":15},{"part":"身体","cut":45,"blunt":45,"ranged":25,"fire":20,"water":0,"thunder":10,"ice":5,"dragon":10},{"part":"臂","cut":45,"blunt":45,"ranged":30,"fire":20,"water":0,"thunder":10,"ice":5,"dragon":10},{"part":"腿","cut":45,"blunt":45,"ranged":30,"fire":20,"water":0,"thunder":10,"ice":5,"dragon":10},{"part":"喙","cut":0,"blunt":0,"ranged":0,"fire":0,"water":0,"thunder":0,"ice":0,"dragon":0}]}

@@ -1,18 +1,1 @@
-{
-  "name": "惨爪龙",
-  "slug": "ADAfZ",
-  "url": "https://mhworld.kiranico.com/zh/monsters/ADAfZ/can-zhua-long",
-  "parts": [
-    {"part": "Head", "cut": 70, "blunt": 75, "ranged": 65, "fire": 10, "water": 15, "thunder": 20, "ice": 30, "dragon": 0},
-    {"part": "Neck", "cut": 40, "blunt": 45, "ranged": 35, "fire": 0, "water": 5, "thunder": 10, "ice": 20, "dragon": 0},
-    {"part": "Body", "cut": 30, "blunt": 30, "ranged": 25, "fire": 0, "water": 0, "thunder": 5, "ice": 15, "dragon": 0},
-    {"part": "Back", "cut": 30, "blunt": 30, "ranged": 25, "fire": 0, "water": 0, "thunder": 5, "ice": 15, "dragon": 0},
-    {"part": "Forelegs", "cut": 55, "blunt": 50, "ranged": 45, "fire": 5, "water": 10, "thunder": 15, "ice": 25, "dragon": 0},
-    {"part": "Hindlegs", "cut": 45, "blunt": 40, "ranged": 35, "fire": 5, "water": 10, "thunder": 15, "ice": 25, "dragon": 0},
-    {"part": "Tail", "cut": 45, "blunt": 40, "ranged": 35, "fire": 5, "water": 5, "thunder": 10, "ice": 20, "dragon": 0},
-    {"part": "Head", "cut": 60, "blunt": 65, "ranged": 55, "fire": 10, "water": 15, "thunder": 20, "ice": 30, "dragon": 0},
-    {"part": "Neck", "cut": 36, "blunt": 45, "ranged": 32, "fire": 0, "water": 5, "thunder": 10, "ice": 20, "dragon": 0},
-    {"part": "Hindlegs", "cut": 45, "blunt": 36, "ranged": 32, "fire": 5, "water": 10, "thunder": 15, "ice": 25, "dragon": 0},
-    {"part": "Tail", "cut": 45, "blunt": 36, "ranged": 32, "fire": 5, "water": 5, "thunder": 10, "ice": 20, "dragon": 0}
-  ]
-}
+{"name":"惨爪龙","slug":"ADAfZ","url":"https://mhworld.kiranico.com/zh/monsters/ADAfZ/can-zhua-long","parts":[{"part":"头部①","cut":70,"blunt":75,"ranged":65,"fire":10,"water":15,"thunder":20,"ice":30,"dragon":0},{"part":"颈部①","cut":40,"blunt":45,"ranged":35,"fire":0,"water":5,"thunder":10,"ice":20,"dragon":0},{"part":"身体","cut":30,"blunt":30,"ranged":25,"fire":0,"water":0,"thunder":5,"ice":15,"dragon":0},{"part":"背部","cut":30,"blunt":30,"ranged":25,"fire":0,"water":0,"thunder":5,"ice":15,"dragon":0},{"part":"前肢","cut":55,"blunt":50,"ranged":45,"fire":5,"water":10,"thunder":15,"ice":25,"dragon":0},{"part":"后肢①","cut":45,"blunt":40,"ranged":35,"fire":5,"water":10,"thunder":15,"ice":25,"dragon":0},{"part":"尾巴①","cut":45,"blunt":40,"ranged":35,"fire":5,"water":5,"thunder":10,"ice":20,"dragon":0},{"part":"头部②","cut":60,"blunt":65,"ranged":55,"fire":10,"water":15,"thunder":20,"ice":30,"dragon":0},{"part":"颈部②","cut":36,"blunt":45,"ranged":32,"fire":0,"water":5,"thunder":10,"ice":20,"dragon":0},{"part":"后肢②","cut":45,"blunt":36,"ranged":32,"fire":5,"water":10,"thunder":15,"ice":25,"dragon":0},{"part":"尾巴②","cut":45,"blunt":36,"ranged":32,"fire":5,"water":5,"thunder":10,"ice":20,"dragon":0}]}
